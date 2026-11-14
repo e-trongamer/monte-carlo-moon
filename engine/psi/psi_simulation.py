@@ -13,9 +13,15 @@ One run, for one configuration (config.Config):
 Absolute densities are NOT trusted on their own; psi_study.py anchors every
 branch to Surveyor III. Sources and assumptions are in config.py; the history
 of fixes is in CHANGELOG.md.
+
+    python psi_simulation.py                         # run or resume
+    python psi_simulation.py --max-steps 300         # pause after 300 source steps
+    python psi_simulation.py --reset                 # discard the checkpoint
+    python psi_simulation.py --velocity-model fig5 --thrust 44000 --mc 200000
 """
 from __future__ import annotations
 
+import argparse
 import contextlib
 import hashlib
 import io
@@ -324,26 +330,42 @@ def launch_speed(r, D, h, emit, cfg: Config):
 FIG5_LEVELS = (16, 25, 40, 63, 100, 160, 250, 400, 630, 1000, 1600)
 
 
+def find_fig5_traces(folder=None):
+    """The folder holding the traced contours: `folder` if given, else
+    fig5_traces/ next to this file or one level up. None if not found."""
+    candidates = [folder] if folder else [os.path.join(HERE, "fig5_traces"),
+                                          os.path.join(os.path.dirname(HERE), "fig5_traces")]
+    return next(filter(os.path.isdir, candidates), None)
+
+
+def read_trace_csv(path):
+    """Two columns "x;y" with decimal commas -> (x, y) arrays."""
+    with open(path, encoding="utf-8") as f:
+        rows = [[float(v.replace(",", ".")) for v in line.split(";")]
+                for line in map(str.strip, f) if line]
+    a = np.array(rows)
+    return a[:, 0], a[:, 1]
+
+
 def load_fig5_traces(folder=None):
     """WebPlotDigitizer traces ("h;D", decimal commas), one file per contour.
     Returns (u [m/s], h [m], D [um]) arrays, or None if no folder is found."""
-    folders = [folder] if folder else [os.path.join(HERE, "fig5_traces"),
-                                       os.path.join(os.path.dirname(HERE), "fig5_traces")]
-    for path in filter(os.path.isdir, folders):
-        files = {u: next((p for p in (os.path.join(path, f"{u}.csv"),
-                                      os.path.join(path, f"{u} (1).csv"))
-                          if os.path.isfile(p)), None) for u in FIG5_LEVELS}
-        missing = [u for u, p in files.items() if p is None]
-        if missing:
-            raise FileNotFoundError(f"{path}: missing Fig. 5 contours {missing}")
-        rows = []
-        for u, p in files.items():
-            with open(p, encoding="utf-8") as f:
-                for line in filter(None, map(str.strip, f)):
-                    h, D = (float(x.replace(",", ".")) for x in line.split(";"))
-                    rows.append((u, h, D))
-        return np.array(rows).T
-    return None
+    path = find_fig5_traces(folder)
+    if path is None:
+        return None
+    files = {u: next((p for p in (os.path.join(path, f"{u}.csv"),
+                                  os.path.join(path, f"{u} (1).csv"))
+                      if os.path.isfile(p)), None) for u in FIG5_LEVELS}
+    missing = [u for u, p in files.items() if p is None]
+    if missing:
+        raise FileNotFoundError(f"{path}: missing Fig. 5 contours {missing}")
+    u, h, D = [], [], []
+    for level, p in files.items():
+        hs, Ds = read_trace_csv(p)
+        u += [level] * len(hs)
+        h += hs.tolist()
+        D += Ds.tolist()
+    return np.array(u, float), np.array(h), np.array(D)
 
 
 def fig5_check(cfg: Config) -> tuple[bool, str]:
@@ -374,8 +396,7 @@ def fig5_check(cfg: Config) -> tuple[bool, str]:
 def divot_volume(v, D, cfg: Config):
     """Sheldon & Kanhere (1972) [m^3]. The coefficient is a placeholder."""
     dmg = cfg.damage
-    return (
-        dmg.divot_coefficient * v ** 3 * D ** 3
+    return (dmg.divot_coefficient * v ** 3 * D ** 3
             * cfg.regolith.grain_density_kg_m3 ** 1.5 * dmg.target_hardness_pa ** -1.5)
 
 
@@ -851,16 +872,30 @@ def postprocess(st, G: Grids, cfg: Config) -> dict:
     }
 
 
-def simulate(cfg: Config, cache_dir=None, quiet=True) -> dict:
-    """Run one configuration with caching and return its results.
-
-    The cache key is the config's run hash plus a hash of this file, so
-    editing the physics never silently reuses old results.
-    """
+def run_directory(cfg: Config, cache_dir=None) -> str:
+    """Cache folder of one configuration: its run hash plus a hash of this
+    file, so editing the physics never silently reuses old results."""
     with open(os.path.abspath(__file__), "rb") as f:
         code_tag = hashlib.sha256(f.read()).hexdigest()[:8]
-    run_dir = os.path.join(cache_dir or os.path.join(HERE, "psi_cache"),
-                           f"{cfg.run_hash()}_{code_tag}")
+    return os.path.join(cache_dir or os.path.join(HERE, "psi_cache"),
+                        f"{cfg.run_hash()}_{code_tag}")
+
+
+def cached_state(cfg: Config, cache_dir=None):
+    """The completed checkpoint state of a cached run, or None. Never runs
+    anything. Holds the per-grain-class Monte Carlo sums under
+    state["acc"]["mc"][branch tag], which results{} only keeps summed."""
+    path = os.path.join(run_directory(cfg, cache_dir), "checkpoint.json")
+    if not os.path.exists(path):
+        return None
+    with open(path, encoding="utf-8") as f:
+        st = json.load(f)
+    return st if st.get("version") == STATE_VERSION and st.get("status") == "COMPLETED" else None
+
+
+def simulate(cfg: Config, cache_dir=None, quiet=True) -> dict:
+    """Run one configuration with caching and return its results."""
+    run_dir = run_directory(cfg, cache_dir)
     os.makedirs(run_dir, exist_ok=True)
     with contextlib.redirect_stdout(io.StringIO()) if quiet else contextlib.nullcontext():
         st, G = run(cfg, os.path.join(run_dir, "checkpoint.json"), save_interval_s=30.0)
@@ -894,3 +929,38 @@ def print_summary(res: dict):
     n = len(own["D_um"])
     for i in sorted({0, n // 4, n // 2, 3 * n // 4, n - 1}):
         print(f"  {own['D_um'][i]:>8.1f} {own['v_m_s'][i]:>10.1f} {fig5['u_max_m_s'][i]:>10.1f}")
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--out-dir", default=HERE)
+    ap.add_argument("--checkpoint", default=None)
+    ap.add_argument("--max-steps", type=int, default=None)
+    ap.add_argument("--save-interval", type=float, default=2.0)
+    ap.add_argument("--reset", action="store_true")
+    ap.add_argument("--velocity-model", type=VelocityModels, choices=list(VelocityModels))
+    ap.add_argument("--thrust", type=float, help="hover thrust [N]")
+    ap.add_argument("--mc", type=int, help="Monte Carlo trajectories per branch")
+    a = ap.parse_args()
+    with contextlib.suppress(AttributeError):
+        sys.stdout.reconfigure(encoding="utf-8")
+
+    changes = {"velocity.model": a.velocity_model, "engine.thrust_n": a.thrust,
+               "monte_carlo.particles_per_branch": a.mc}
+    cfg = Config().with_(**{k: v for k, v in changes.items() if v is not None})
+
+    os.makedirs(a.out_dir, exist_ok=True)
+    checkpoint = a.checkpoint or os.path.join(a.out_dir, "psi_checkpoint.json")
+    if a.reset:
+        delete_checkpoint(checkpoint)
+    st, G = run(cfg, checkpoint, a.max_steps, a.save_interval)
+    if st["status"] == "COMPLETED":
+        res = postprocess(st, G, cfg)
+        with open(os.path.join(a.out_dir, "psi_results.json"), "w", encoding="utf-8") as f:
+            json.dump(res, f, indent=1)
+        print_summary(res)
+
+
+if __name__ == "__main__":
+    main()

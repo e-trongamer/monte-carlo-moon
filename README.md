@@ -4,20 +4,29 @@ NASA Space Apps Challenge 2026 project by two students.
 
 In 1969 Apollo 12 landed 155 m from the robot lander Surveyor 3. The engine
 blast sandblasted it: back on Earth, scientists counted about 103 tiny pits per
-cm² on its metal. We rebuilt that dust storm as a Monte Carlo simulation,
-calibrated it against those pits, and used it to ask how far future landers
+cm² on its metal. The project contains a Monte Carlo simulation of that dust storm, calibrated
+against the returned Surveyor 3 samples, to explore how far future landers
 must stay from heritage sites and moon bases.
+
+The authoritative account of preparation and hackathon work is in
+[TIMELINE.md](TIMELINE.md).
+
+**Finding:** Eq. 7 in Lane & Metzger (2015, [arXiv:1503.00154](https://arxiv.org/abs/1503.00154))
+does not reproduce their own Fig. 5, so our model uses a fit to the figure
+instead. Details in the [Fig. 5 constants section below](#fig-5-constants).
 
 ## Try the app
 
-Open `app_mockup/index.html` in a browser. It is a single self-contained file
-(data and NASA photos are built in) with four chapters: Surveyor 3, Apollo 12,
+**Live: https://e-trongamer.github.io/monte-carlo-moon/**
+
+Build the self-contained browser app with `python app_mockup/build_mockup.py --assemble`,
+then open `app_mockup/index.html`. It contains four chapters: Surveyor 3, Apollo 12,
 the model, and the future, where you plan landings, build pads and berms and
 test them.
 
 ## Requirements
 
-Python 3.10+ with `numpy`, `scipy`, `numba` and `matplotlib`.
+Python 3.10+ with `numpy`, `scipy` and `numba`. `matplotlib` is only needed for `--plot`.
 
 The Monte Carlo cache (`psi_cache/`, about 430 MB) is not in this repository.
 Without it, `escalation.py` and `mitigation.py` recompute everything, which
@@ -34,18 +43,22 @@ plus the studies and the app built on it.
 | Step | Script | Needs | Writes |
 |---|---|---|---|
 | 1 | `psi_simulation.py` | – | the model; every study calls `simulate()`, which caches each configuration in `psi_cache/` |
-| 2 | `escalation.py` | – (fills the cache, hours at full resolution) | `escalation_results.json`, `escalation.png` |
-| 3 | `pit_calibration.py` | 11.6 kN runs from step 2 | `pit_calibration_results.json`, **`plausible_branches.json`**, `pit_calibration.png` |
+| 2 | `escalation.py` | – (fills the cache, hours at full resolution) | `escalation_results.json` |
+| 3 | `pit_calibration.py` | 11.6 kN runs from step 2 | `pit_calibration_results.json`, **`plausible_branches.json`** |
 | 4 | `escalation.py` again | step 3 | now uses only the plausible variants (seconds, from cache) |
-| 5 | `mitigation.py` | – (16 more configurations) | `mitigation_results.json`, `mitigation.png` |
+| 5 | `mitigation.py` | – (16 more configurations) | `mitigation_results.json` |
 | 6 | `export_app_data.py` | steps 2–5 (never simulates) | `app_data.json` |
 | 7 | `app_mockup/build_mockup.py --assemble` | step 6 | `app_mockup/index.html` |
 
-Optional: `fig5_analyze.py` (where the Fig. 5 constants come from), `pit_spectrum.py`, `sensitivity.py` (default: Apollo LM thrust),
-`plotter.py` (six-panel figure), `psi_report.py` (Markdown report),
+Optional: `fig5_analyze.py` (where the Fig. 5 constants come from), `pit_spectrum.py`,
 `mitigation.py --with-angles` (extra berm panel, several hours of new runs).
 
 `--quick` on any study uses the reduced resolution in `psi_study.QUICK`.
+
+`--plot` on any study also saves its figure as a PNG next to the script
+(`escalation.png`, `pit_calibration.png`, `mitigation.png`, `pit_spectrum.png`,
+`fig5_analysis.png`). The app never uses these figures; only `fig5_analysis.png`
+is kept in the repository, as the evidence for the Eq. 7 finding.
 
 ### Variant filter
 
@@ -55,7 +68,7 @@ against the Surveyor III coupons and keeps the 18 whose pit counts then match
 the measurement. `psi_study.anchored_exposure()` uses only these by default
 (`only_plausible=False` gives all 36). `export_app_data.py` stores both.
 
-### Safe distance
+### Estimated distance
 
 For every variant, the distance where its exposure last drops below the
 threshold (`psi_study.practical_distance`), then median, min and max over the
@@ -80,7 +93,7 @@ copied to another computer.
 `fig5_analyze.py` derives the `lm_fig5_*` constants in `CONFIG` from the traced
 contours in `fig5_traces/` (K0 = 2054, h_k = 3.32 m, n = 0.913, s = 36; no-lift
 edge c0 = 7.082, c1 = 3.579) and shows that Eq. 7 as printed does not match the
-figure. It only reports and plots (`fig5_analysis.png`); it never edits
+figure. It only reports (and with `--plot` draws `fig5_analysis.png`); it never edits
 `psi_simulation.py`.
 
 ## Sources

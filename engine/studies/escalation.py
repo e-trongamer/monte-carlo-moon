@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""Estimate landing-site separation distances across a range of thrusts.
+"""Escalation study: how far from a landing pad must hardware sit?
 
-Results cover two velocity models, three erosion laws and six ejection angles,
-anchored to the Surveyor III measurements (see psi_study.py). Thresholds are
-fractions of Surveyor III's exposure; they are working assumptions because no
-published hardware damage threshold is available.
+For each thrust class, every model branch (2 velocity laws x 3 erosion laws x
+6 measured Apollo ejection angles) is anchored to Surveyor III (see
+psi_study.py). The answer is a DISTANCE BAND across branches, not a number.
+
+Thresholds are expressed as fractions of the exposure Surveyor III received
+from Apollo 12. Choosing them is a TEAM ASSUMPTION about what the hardware can
+tolerate; no published damage threshold exists.
+
+Writes escalation_results.json.
 
     python escalation.py            # full resolution (cached; slow first time)
     python escalation.py --quick    # reduced resolution, a few minutes
@@ -13,12 +17,10 @@ published hardware damage threshold is available.
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import time
 
 import psi_study as S
-from config import Config
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -31,13 +33,23 @@ SCENARIOS = [
     ("44 kN (BE-7 max thrust)", 44000.0),
     ("100 kN", 100000.0),
 ]
-# Above roughly twice the LM thrust, published work expects bulk cratering.
-# This model does not cover that regime, so Apollo-based extrapolation is weak.
+# Above roughly twice the LM, published work expects bulk cratering
+# (bearing-capacity failure, diffused gas eruption) that NO part of this model
+# represents; NASA states Apollo experience cannot be extrapolated to HLS.
 VALIDATED_MAX_THRUST_N = 2 * S.APOLLO_LM_THRUST_N
 
-# Fractions of Surveyor III's exposure used as thresholds.
+# Fractions of Surveyor III's exposure. Team choice.
 THRESHOLD_FRACTIONS = [1.0, 0.1, 0.01]
 LANDING_COUNTS = [1, 3, 10, 30, 100]
+
+
+def threshold_key(f) -> str:
+    return f"{f:g}x Surveyor"
+
+
+def bands(R, exposures, measured):
+    return {threshold_key(f): S.distance_band(R, exposures, f * measured)
+            for f in THRESHOLD_FRACTIONS}
 
 
 def main():
@@ -49,40 +61,41 @@ def main():
     a = ap.parse_args()
     t0 = time.time()
 
-    results, exposures = {}, {}
+    base = S.base_config(a.quick)
+    meas = base.surveyor.pit_density_per_cm2
+
+    results = {}
     for name, thrust in SCENARIOS:
         t = time.time()
-        runs = S.run_set({"thrust_N": thrust}, quick=a.quick)
-        R, exp_, excluded = S.anchored_exposure(runs)
-        exposures[name] = exp_
-        cfg = runs[S.VELOCITY_MODELS[0]][0]
-        meas = cfg["pit_reference_per_cm2"]
+        runs = S.run_set(base.with_(**{"engine.thrust_n": thrust}))
+        R, exposures, excluded = S.anchored_exposure(runs)
         results[name] = {
             "thrust_N": thrust,
+            "beyond_validated_regime": thrust > VALIDATED_MAX_THRUST_N,
             "excluded_branches": excluded,
-            "distance_bands": {
-                f"{f:g}x Surveyor": S.distance_band(R, exp_, f * meas)
-                for f in THRESHOLD_FRACTIONS},
+            "distance_bands": bands(R, exposures, meas),
+            "exposure": S.exposure_envelope(R, exposures),
         }
-        print(f"[escalation] {name:<28} {len(exp_)} branches "
-              f"({len(excluded)} excluded)  [{time.time()-t:.0f} s]")
+        print(f"[escalation] {name:<28} {len(exposures)} branches "
+              f"({len(excluded)} excluded)  [{time.time() - t:.0f} s]")
 
     # Repeated landings at one thrust class
-    rep_runs = S.run_set({"thrust_N": a.repeat_scenario}, quick=a.quick)
+    rep_runs = S.run_set(base.with_(**{"engine.thrust_n": a.repeat_scenario}))
     repeat = {}
     for n in LANDING_COUNTS:
-        R, exp_n, _ = S.anchored_exposure(rep_runs, n_landings=n)
-        repeat[n] = {f"{f:g}x Surveyor": S.distance_band(R, exp_n, f * meas)
-                     for f in THRESHOLD_FRACTIONS}
+        R, exposures, _ = S.anchored_exposure(rep_runs, n_landings=n)
+        repeat[str(n)] = bands(R, exposures, meas)
 
     grid_max = float(R[-1])
-    summary = {
-        "anchor": {"distance_m": cfg["surveyor_distance_m"],
-                   "height_m": cfg["surveyor_height_m"],
+    S.write_json(os.path.join(HERE, "escalation_results.json"), {
+        "anchor": {"distance_m": base.surveyor.distance_m,
+                   "height_m": base.surveyor.height_m,
                    "measured_per_cm2": meas},
-        "hardware_height_m": cfg["target_height_m"],
+        "hardware_height_m": base.targets.hardware_height_m,
+        "grid_max_m": grid_max,
         "quick": a.quick,
         "validated_max_thrust_N": VALIDATED_MAX_THRUST_N,
+        "null_means": "distance: beyond the grid edge; exposure: no branch hits there",
         "assumptions": [
             "absolute scale from Surveyor III (one measurement)",
             "linear fluence accumulation over repeated landings",
@@ -92,25 +105,22 @@ def main():
             "thresholds are team choices, not published limits",
         ],
         "scenarios": results,
-        "repeated_landings": {"thrust_N": a.repeat_scenario,
-                              "by_count": {str(k): v for k, v in repeat.items()}},
-    }
-    with open(os.path.join(HERE, "escalation_results.json"), "w", encoding="utf-8") as f:
-        json.dump(summary, f, indent=1)
+        "repeated_landings": {"thrust_N": a.repeat_scenario, "by_count": repeat},
+    })
 
-    # ------------------------------------------------------------- printout
-    print(f"\nPractical distance for hardware at {cfg['target_height_m']:g} m height "
+    print(f"\nPractical distance for hardware at {base.targets.hardware_height_m:g} m height "
           f"(median across branches, [min - max])")
-    hdr = "".join(f"{f'{f:g}x Surveyor':>30}" for f in THRESHOLD_FRACTIONS)
-    print(f"{'':<28}{hdr}")
+    print(f"{'':<28}" + "".join(f"{threshold_key(f):>30}" for f in THRESHOLD_FRACTIONS))
     for name, r in results.items():
         cells = ""
         for f in THRESHOLD_FRACTIONS:
-            b = r["distance_bands"][f"{f:g}x Surveyor"]
+            b = r["distance_bands"][threshold_key(f)]
             cells += (f"{S.fmt_distance(b['median'], grid_max):>10} "
-                      f"[{S.fmt_distance(b['min'], grid_max)}-{S.fmt_distance(b['max'], grid_max)}]").rjust(30)
-        flag = "  *outside modeled regime" if r["thrust_N"] > VALIDATED_MAX_THRUST_N else ""
+                      f"[{S.fmt_distance(b['min'], grid_max)}-"
+                      f"{S.fmt_distance(b['max'], grid_max)}]").rjust(30)
+        flag = "  *beyond validated regime" if r["beyond_validated_regime"] else ""
         print(f"{name:<28}{cells}{flag}")
+    print(f"\nwrote escalation_results.json in {time.time() - t0:.0f} s")
 
 
 if __name__ == "__main__":
