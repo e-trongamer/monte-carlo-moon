@@ -1,0 +1,63 @@
+{
+ "rule": "keep a variant if, after calibrating K_D to the coupons' mean pit size (79 um), its absolute N(pits >= 20 um) at Surveyor III lies between 1/3 x 103/cm^2 (coupon average) and 4000/cm^2 (tube maximum), for at least one assumed counting threshold (20 or 50 um)",
+ "source": "pit_calibration.py on the full-resolution 11.6 kN cache",
+ "n_total": 36,
+ "n_kept": 18,
+ "kept": [
+  "fig5|roberts|1.4",
+  "fig5|roberts|8.1",
+  "fig5|scaling|1.4",
+  "fig5|scaling|2.0",
+  "fig5|scaling|2.4",
+  "fig5|scaling|2.6",
+  "fig5|scaling|3.3",
+  "fig5|scaling|8.1",
+  "integrated|energy_flux|2.4",
+  "integrated|energy_flux|2.6",
+  "integrated|roberts|1.4",
+  "integrated|roberts|2.0",
+  "integrated|roberts|2.4",
+  "integrated|roberts|2.6",
+  "integrated|roberts|3.3",
+  "integrated|roberts|8.1",
+  "integrated|scaling|1.4",
+  "integrated|scaling|2.0"
+ ],
+ "by_threshold": {
+  "count_min_20um": [
+   "fig5|roberts|8.1",
+   "fig5|scaling|2.4",
+   "fig5|scaling|2.6",
+   "fig5|scaling|3.3",
+   "fig5|scaling|8.1",
+   "integrated|roberts|1.4",
+   "integrated|roberts|2.0",
+   "integrated|roberts|2.4",
+   "integrated|roberts|2.6",
+   "integrated|roberts|3.3",
+   "integrated|roberts|8.1",
+   "integrated|scaling|1.4",
+   "integrated|scaling|2.0"
+  ],
+  "count_min_50um": [
+   "fig5|roberts|1.4",
+   "fig5|roberts|8.1",
+   "fig5|scaling|1.4",
+   "fig5|scaling|2.0",
+   "fig5|scaling|2.4",
+   "fig5|scaling|2.6",
+   "fig5|scaling|3.3",
+   "fig5|scaling|8.1",
+   "integrated|energy_flux|2.4",
+   "integrated|energy_flux|2.6",
+   "integrated|roberts|1.4",
+   "integrated|roberts|2.0",
+   "integrated|roberts|2.4",
+   "integrated|roberts|2.6",
+   "integrated|roberts|3.3",
+   "integrated|roberts|8.1",
+   "integrated|scaling|1.4",
+   "integrated|scaling|2.0"
+  ]
+ }
+}

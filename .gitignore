@@ -1,0 +1,5 @@
+psi_cache/
+_archive/
+__pycache__/
+*.pyc
+app_mockup/template.html
