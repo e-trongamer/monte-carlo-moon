@@ -1,0 +1,105 @@
+<!-- =============================================== CHAPTER 4 -->
+<section class="chapter" id="ch-future" data-ch="future" hidden>
+  <div class="ch-head">
+    <span class="eyebrow">Chapter 4 · the future</span>
+    <h1>How far is far enough?</h1>
+    <p class="lede">Moon bases are coming, and so are landers bigger than Apollo's, landing again and again. Flight control needs an answer: where can they touch down without sandblasting everything around them?</p>
+    <p class="muted"><b>There's no single answer.</b> We estimate where the sandblasting falls below a level we picked, using Surveyor 3 as the only real measurement. Treat it as a rule of thumb, not a safety rule.</p>
+    <p class="chap-meta"></p>
+  </div>
+
+  <nav class="stations" aria-label="Stations in this chapter">
+    <button type="button" data-station="0"><span class="st-num">1</span><span class="st-txt"><b>Sandblast map</b><small>Where the dust lands</small></span></button>
+    <button type="button" data-station="1"><span class="st-num">2</span><span class="st-txt"><b>Planning tools</b><small>Advisor, pads and berms</small></span></button>
+    <button type="button" data-station="2"><span class="st-num">3</span><span class="st-txt"><b>Why it matters</b><small>Heritage, what we learned</small></span></button>
+  </nav>
+
+  <section class="station" data-station="0" aria-labelledby="f0h">
+    <header class="st-head">
+      <span class="st-of">Station 1 of 3</span>
+      <h2 class="h2" id="f0h">Sandblast map</h2>
+      <p class="muted">Pick a site and a lander, then tap the map where it should touch down. The rings work like the circles around a campfire, where the smoke gets thinner the farther away you sit. Inside the innermost ring, hardware would be sandblasted at least as hard as Surveyor 3 was in 1969. The next rings mark 10 times and 100 times less.</p>
+      <p class="note">The rings are estimates from our model, not safety limits. Press <b>▶ Replay Apollo 12 (1969)</b> to see the Apollo 12 landing on the same map.</p>
+    </header>
+<!-- @include planner.html -->
+    <div class="st-nav"><span></span><button class="btn primary" type="button" data-station-go="1">Next station: Planning tools →</button></div>
+  </section>
+
+  <section class="station" data-station="1" aria-labelledby="f1h" hidden>
+    <header class="st-head">
+      <span class="st-of">Station 2 of 3</span>
+      <h2 class="h2" id="f1h">Planning tools</h2>
+      <p class="muted"><b>Your job:</b> pick what to protect and which lander is coming. The advisor tells you how far away to land. Below: how much a landing pad or a berm helps.</p>
+    </header>
+    <section class="panel" aria-label="Landing advisor">
+      <div class="section-title"><span class="label">Planning tool</span><h2 class="h2">Landing advisor</h2></div>
+      <div class="advisor">
+        <div class="stack">
+          <div class="field"><label class="label" for="advObj">Protect this</label><select id="advObj"></select></div>
+          <div class="field"><label class="label" for="advLander">Lander</label><select id="advLander"></select></div>
+          <div class="field"><label class="label" for="advLevel">Protection level</label>
+            <select id="advLevel">
+              <option value="1">Like Surveyor 3 got (1×)</option>
+              <option value="0.1" selected>10× less than Surveyor 3</option>
+              <option value="0.01">100× less than Surveyor 3</option>
+            </select></div>
+          <div class="field"><label class="label" for="advAcc">Landing accuracy</label>
+            <input type="range" id="advAcc" min="0" max="500" step="25" value="100">
+            <span class="value" id="advAccVal">± 100 m</span></div>
+        </div>
+        <div class="verdict" id="advOut"></div>
+      </div>
+    </section>
+
+    <section class="panel" aria-label="Mitigation">
+      <div class="section-title"><span class="label">Protection</span><h2 class="h2">Pads, berms and craters</h2></div>
+      <p class="muted">A <b>landing pad</b> is a hard, flat surface, like a helipad, so the engine finds no loose dust right under it to blow away. A <b>berm</b> is a ring wall of piled-up soil around the landing spot (50 m out in our model) that catches dust flying low, the way a fence stops a ball rolling along the ground.</p>
+      <div class="tbl"><table class="mit" id="mit"></table></div>
+      <p class="note" id="mitNote"></p>
+    </section>
+    <div class="st-nav"><button class="btn" type="button" data-station-go="0">← Back</button><button class="btn primary" type="button" data-station-go="2">Next station: Why it matters →</button></div>
+  </section>
+
+  <section class="station" data-station="2" aria-labelledby="f2h" hidden>
+    <header class="st-head">
+      <span class="st-of">Station 3 of 3</span>
+      <h2 class="h2" id="f2h">Why it matters</h2>
+      <p class="muted"><b>Your job:</b> see what is still standing on the Moon, then read what we learned and where our model stops.</p>
+    </header>
+    <section class="card stack" id="heritage">
+      <div class="section-title">
+        <span class="label">Heritage</span>
+        <h2 class="h2">Left behind on the Moon</h2>
+        <p class="muted">Surveyor 3 is not alone. Hardware from every Apollo landing is still up there, and future landings near these sites need the same care.</p>
+      </div>
+      <div class="hergrid" id="herGrid"></div>
+      <p class="note"><b class="fg">NASA's own guideline.</b> In 2011 NASA asked anyone landing near these sites to touch down at least 2 km from Apollo and Surveyor landers, or farther if their 3σ landing uncertainty is larger, and to approach along a tangent to that circle rather than straight at it. The reasoning: the lunar horizon is roughly 1.8 km away, so from 2 km the main sheet of fast dust flies over the hardware. These are recommendations, not legal requirements.</p>
+      <p class="src">Facts from NASA Science mission pages, NASA's NSSDCA catalogue and NASA's 2011 recommendations for lunar heritage sites.</p>
+    </section>
+
+    <div class="section-title"><span class="label">Wrap-up</span><h2 class="h2">What we learned</h2></div>
+    <blockquote class="takeaway"><span class="eyebrow">Final report</span><p>Engineers have studied this since Apollo 12 brought pieces of Surveyor 3 home. What's still open is how it scales: the next landers are far heavier than Apollo's, and the only hard data we have are the parts brought back in 1969.</p></blockquote>
+    <div class="learned" id="learned"></div>
+
+    <footer class="foot card">
+      <div>
+        <h3>Model limits</h3>
+        <ul id="limits"></ul>
+      </div>
+      <div>
+        <h3>Sources</h3>
+        <ul><li>All sources, with links: <a href="#sources">Sources and citations →</a></li></ul>
+      </div>
+      <div>
+        <h3>About</h3>
+        <ul>
+          <li>Team Monte Carlo Moon: two students, one maths problem · NASA Space Apps Challenge 2026</li>
+          <li><span class="tag" id="dataTag">model data</span></li>
+          <li>Learn from the past, protect the future.</li>
+        </ul>
+      </div>
+    </footer>
+    <div class="st-nav"><button class="btn" type="button" data-station-go="1">← Back</button><span></span></div>
+    <div class="next"><span class="muted">End of chapter 4</span><button class="btn primary big" type="button" data-go="sources">Continue to the sources →</button></div>
+  </section>
+</section>

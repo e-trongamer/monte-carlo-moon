@@ -1,0 +1,64 @@
+<!-- =============================================== INTRO -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="patchSym" viewBox="0 0 240 240">
+      <path id="patchTop" d="M 28 120 A 92 92 0 0 1 212 120" fill="none"/>
+      <path id="patchBot" d="M 20 120 A 100 100 0 0 0 220 120" fill="none"/>
+      <clipPath id="patchClip"><circle cx="120" cy="120" r="72"/></clipPath>
+      <circle cx="120" cy="120" r="117" fill="#0f1e3f"/>
+      <circle cx="120" cy="120" r="114" fill="none" stroke="#e8b54a" stroke-width="4"/>
+      <circle cx="120" cy="120" r="75" fill="#04050a" stroke="#e8b54a" stroke-width="3"/>
+      <g clip-path="url(#patchClip)">
+        <circle cx="70" cy="74" r="1.2" fill="#fff"/><circle cx="96" cy="58" r="1" fill="#fff"/><circle cx="142" cy="66" r="1.3" fill="#fff"/>
+        <circle cx="182" cy="96" r="1" fill="#fff"/><circle cx="60" cy="108" r="1" fill="#fff"/><circle cx="120" cy="88" r="0.9" fill="#fff"/>
+        <circle cx="160" cy="84" r="11" fill="#3b6fb6"/><path d="M152 80 q7 -5 12 2 q-5 6 -10 3Z M157 92 q6 2 9 -4" fill="#6fae6a"/>
+        <rect x="78" y="86" width="16" height="16" rx="3" transform="rotate(-18 86 94)" fill="#eeeae0"/>
+        <circle cx="82" cy="91" r="1.6" fill="#04050a"/><circle cx="87" cy="95" r="1.6" fill="#04050a"/><circle cx="91" cy="99" r="1.6" fill="#04050a"/>
+        <path d="M44 152 Q120 136 196 150 L196 200 L44 200Z" fill="#9a968d"/>
+        <path d="M44 152 Q120 136 196 150" fill="none" stroke="#c9c5bb" stroke-width="1.5"/>
+        <path d="M96 146 L170 139" stroke="#e8b54a" stroke-width="2" stroke-dasharray="2 3"/>
+        <g transform="translate(86 147)"><path d="M-11 0 L-7 -9 M11 0 L7 -9" stroke="#eeeae0" stroke-width="1.6"/><rect x="-8" y="-14" width="16" height="6" fill="#d9b25a"/><path d="M-6 -14 L-4 -23 L4 -23 L6 -14Z" fill="#eeeae0"/></g>
+        <g transform="translate(172 141)" stroke="#eeeae0" stroke-width="1.4" fill="none"><path d="M0 -14 L-7 0 M0 -14 L7 0 M0 -14 L0 -22"/><rect x="-6" y="-26" width="12" height="3.5" fill="#5d7fb0" stroke="none"/></g>
+      </g>
+      <text font-family="Arial Narrow, Inter, sans-serif" font-weight="700" font-size="23" letter-spacing="3" fill="#f3efe6"><textPath href="#patchTop" startOffset="50%" text-anchor="middle">MONTE CARLO MOON</textPath></text>
+      <text font-family="Arial Narrow, Inter, sans-serif" font-weight="600" font-size="14" letter-spacing="2.4" fill="#e8b54a"><textPath href="#patchBot" startOffset="50%" text-anchor="middle">SPACE APPS 2026 · LEARN FROM THE PAST</textPath></text>
+      <circle cx="16" cy="120" r="3" fill="#e8b54a"/><circle cx="224" cy="120" r="3" fill="#e8b54a"/>
+    </symbol>
+  </defs>
+</svg>
+
+<section class="chapter" id="ch-intro" data-ch="intro" hidden>
+  <figure class="hero">
+    <img src="assets/as12-48-7134.jpg" alt="Astronaut Pete Conrad stands next to the robot lander Surveyor 3. His own lander is on the horizon, 155 metres away." width="1200" height="1200">
+    <div class="hero-text">
+      <svg class="patch" role="img" aria-label="Monte Carlo Moon mission patch"><use href="#patchSym"/></svg>
+      <span class="hero-credit">Ocean of Storms, 20 November 1969 · NASA frame AS12-48-7134</span>
+      <h1>We were really up there.</h1>
+      <p class="lede">That's Pete Conrad next to the robot Surveyor 3. On the horizon, 155 m away, is the lander that just sandblasted it. Back then it was a puzzle for engineers, not a planning problem, because nobody lived on the Moon. That is about to change.</p>
+      <p class="answer" id="heroAnswer"></p>
+      <div class="hero-cta">
+        <button class="btn primary big" type="button" data-go="surveyor">Start the story →</button>
+        <button class="btn big ghost" type="button" id="introTour">▶ Watch the tour (about 3 min)</button>
+        <span class="cta-meta" id="ctaMeta">4 chapters</span>
+      </div>
+    </div>
+  </figure>
+
+  <div class="where">
+    <div class="globe" id="globe" role="img" aria-label="Rotating Moon with three marked sites">
+      <div class="globe-labels" id="globeLabels"></div>
+    </div>
+    <div class="intro-text">
+      <span class="eyebrow">Flight plan</span>
+      <h2 class="h2big">Houston, we have a dust problem.</h2>
+      <p class="lede">We're two students who like maths. We picked a problem that hasn't mattered much for planning yet: once people live on the Moon, a landing next to their base must not go wrong. So we rebuilt the 1969 dust storm with millions of virtual grains to work out how far is far enough.</p>
+      <div class="sitechips" id="siteChips"></div>
+      <ol class="flightplan">
+        <li><a href="#surveyor"><b>01</b> The robot that went first</a></li>
+        <li><a href="#apollo"><b>02</b> The visit that sandblasted it</a></li>
+        <li><a href="#simulation"><b>03</b> Our model of the dust storm</a></li>
+        <li><a href="#future"><b>04</b> How far is far enough?</a></li>
+      </ol>
+    </div>
+  </div>
+</section>

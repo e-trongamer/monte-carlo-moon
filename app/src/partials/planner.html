@@ -1,0 +1,80 @@
+<!-- The sandblast map with its controls (chapter 4, station 1). Code: js/map.js -->
+<div class="planner" id="planner">
+  <aside class="panel" aria-label="Scenario">
+    <div class="free-head">
+      <h3>Explore freely</h3>
+      <p class="note">Watch 1969 again, or pick a site and a lander and tap the map.</p>
+    </div>
+    <button class="btn primary" type="button" id="replay">▶ Replay Apollo 12 (1969)</button>
+    <div class="field"><span class="label">Site</span><div class="seg" id="sites"></div></div>
+    <div class="field"><span class="label">Lander</span><div class="lander-list" id="landers"></div></div>
+    <details class="more">
+      <summary>More options</summary>
+      <div class="more-body">
+        <div class="field">
+          <label class="label" for="height">Height of nearby hardware</label>
+          <input type="range" id="height" min="0" max="4" step="1" value="1">
+          <div class="ticks"><span>0 m</span><span>1.5</span><span>3</span><span>5</span><span>8 m</span></div>
+        </div>
+        <div class="field">
+          <label class="label" for="count">Landings at this spot</label>
+          <input type="range" id="count" min="0" max="4" step="1" value="0">
+          <div class="ticks"><span>1</span><span>3</span><span>10</span><span>30</span><span>100</span></div>
+        </div>
+      </div>
+    </details>
+  </aside>
+  <div class="stack">
+    <div class="mapbox" id="mapbox">
+      <canvas id="map" aria-label="Map of the landing area. Click or tap to move the lander."></canvas>
+      <div class="hint" id="hint">Tap to set the landing site. Drag to pan, scroll or pinch to zoom.</div>
+      <div class="alt" id="alt" hidden aria-live="off">
+        <span class="alt-lbl">Altitude</span>
+        <div class="alt-num"><b id="altVal">34.0</b> m</div>
+        <div class="alt-gauge" aria-hidden="true">
+          <span class="alt-tick" style="bottom:0%">0</span><span class="alt-tick" style="bottom:29.4%">10</span>
+          <span class="alt-tick" style="bottom:58.8%">20</span><span class="alt-tick" style="bottom:88.2%">30</span>
+          <i class="alt-cut" style="bottom:5.9%"></i>
+          <span class="alt-mark" id="altMark"></span>
+        </div>
+        <dl><dt>Real time to contact</dt><dd id="altTime">64 s</dd><dt>Dust thrown so far</dt><dd id="altDust">0%</dd></dl>
+        <span class="alt-phase" id="altPhase">Approach</span>
+      </div>
+      <div class="map-ui tr">
+        <button type="button" id="zin" aria-label="Zoom in">+</button>
+        <button type="button" id="zout" aria-label="Zoom out">−</button>
+        <button type="button" id="zfit" aria-label="Fit rings" class="small">fit</button>
+        <button type="button" id="zfull" aria-label="Full screen map" title="Full screen">⛶</button>
+      </div>
+      <div class="map-ui bl"><div class="scale"><i id="scalebar"></i><span id="scaletxt"></span></div></div>
+      <div class="map-legend">
+        <b>Sandblasting per landing</b>
+        <span><i style="background:var(--r1)"></i>more than Surveyor 3 got in 1969</span>
+        <span><i style="background:var(--r2)"></i>more than 10% of that</span>
+        <span><i style="background:var(--r3)"></i>more than 1% of that</span>
+        <span><i class="dash"></i>range of the model versions</span>
+        <span><i class="sq"></i>hardware to protect</span>
+      </div>
+    </div>
+    <div class="readout" id="banner" hidden aria-live="polite">
+      <div id="bannerBody"></div>
+      <button type="button" id="bannerClose" aria-label="Close">×</button>
+    </div>
+    <section class="panel" aria-label="Estimated distances">
+      <h3>Estimated distances for this landing</h3>
+      <p class="warn-note" id="ringWarn" hidden></p>
+      <div class="rings" id="rings"></div>
+      <details class="more">
+        <summary>What gets hit, piece by piece</summary>
+        <div class="more-body"><div class="objects" id="objects"></div></div>
+      </details>
+      <details class="more">
+        <summary>Chart: impacts per cm² vs distance</summary>
+        <div class="more-body">
+          <div class="chart-wrap"><svg class="chart" id="chart" viewBox="0 0 520 300" role="img" aria-label="Exposure versus distance"></svg></div>
+          <p class="note" id="chartNote"></p>
+        </div>
+      </details>
+    </section>
+  </div>
+</div>

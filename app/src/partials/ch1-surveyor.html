@@ -1,0 +1,75 @@
+<!-- =============================================== CHAPTER 1 -->
+<section class="chapter" id="ch-surveyor" data-ch="surveyor" hidden>
+  <div class="ch-head">
+    <span class="eyebrow">Chapter 1 · April 1967</span>
+    <h1>Meet Surveyor 3</h1>
+    <p class="lede">Before anyone set foot on the Moon, someone had to check that the ground wouldn't swallow the lander. That job went to a robot. It is still standing up there.</p>
+    <p class="chap-meta"></p>
+  </div>
+
+  <nav class="stations" aria-label="Stations in this chapter">
+    <button type="button" data-station="0"><span class="st-num">1</span><span class="st-txt"><b>Inspect the robot</b><small>Five parts to check</small></span></button>
+    <button type="button" data-station="1"><span class="st-num">2</span><span class="st-txt"><b>Its mission</b><small>From launch to last signal</small></span></button>
+  </nav>
+
+  <section class="station" data-station="0" aria-labelledby="s1h0">
+    <header class="st-head">
+      <span class="st-of">Station 1 of 2</span>
+      <h2 class="h2" id="s1h0">Inspect the robot</h2>
+      <p class="muted"><b>Your job:</b> tap the five glowing dots on the photo and check off every part of Surveyor 3.</p>
+    </header>
+    <div class="explore">
+      <figure class="photo">
+        <div class="photo-inner" id="surveyorPhoto"><img src="assets/as12-48-7100.jpg" alt="Surveyor 3 standing on the Moon, photographed by the Apollo 12 crew in 1969. Their lander is visible on the horizon." width="1200" height="865"></div>
+        <figcaption>Surveyor 3 on the Moon, photographed by Alan Bean in November 1969. The Apollo 12 lander sits on the crater rim behind it. Photo: NASA (AS12-48-7100)</figcaption>
+      </figure>
+      <div class="card partcard" aria-live="polite">
+        <span class="label">Inspection checklist</span>
+        <h3 id="partTitle">Five dots, five parts</h3>
+        <p id="partText">Every glowing dot on the photo is a part of Surveyor 3. Tap each one to check it off.</p>
+        <p class="fact" id="partFact" hidden></p>
+        <div class="counter"><div class="dots" id="partDots"></div><span class="muted" id="partCount">0 of 5 checked</span></div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><span class="label">Launched</span><b>17 Apr 1967</b><span class="muted">Atlas-Centaur rocket</span></div>
+      <div class="stat"><span class="label">Landed</span><b>20 Apr 1967</b><span class="muted">Ocean of Storms</span></div>
+      <div class="stat"><span class="label">Height</span><b>about 3 m</b><span class="muted">taller than a door</span></div>
+      <div class="stat"><span class="label">Pictures sent</span><b>6,326</b><span class="muted">black and white TV</span></div>
+    </div>
+
+    <div class="st-nav"><span></span><button class="btn primary" type="button" data-station-go="1">Next station: Its mission →</button></div>
+  </section>
+
+  <section class="station" data-station="1" aria-labelledby="s1h1" hidden>
+    <header class="st-head">
+      <span class="st-of">Station 2 of 2</span>
+      <h2 class="h2" id="s1h1">Its mission</h2>
+      <p class="muted"><b>Your job:</b> follow Surveyor 3 from launch to its last signal. Want the soil measurements? Open nerd mode.</p>
+    </header>
+    <div class="card stack">
+      <h2 class="h2">Mission timeline</h2>
+      <div class="timeline">
+        <div class="tl"><time>17 Apr 1967</time><p>Launch from Cape Kennedy, Florida.</p></div>
+        <div class="tl"><time>20 Apr 1967</time><p>Shiny rocks confuse its radar and the engine keeps firing. Two bounces, up to 10 m high. Not in the manual.</p></div>
+        <div class="tl"><time>Late Apr 1967</time><p>Digs four trenches with its scoop and sends 6,326 pictures to Earth.</p></div>
+        <div class="tl"><time>4 May 1967</time><p>Two days into the two-week lunar night, Surveyor sends its last signal and never wakes up.</p></div>
+        <div class="tl dim"><time>Nov 1969</time><p>Visitors arrive. That's chapter 2.</p></div>
+      </div>
+    </div>
+
+    <details class="nerd">
+      <summary>Nerd mode: what Surveyor 3 measured</summary>
+      <div class="nerd-body">
+        <p>The surface sampler (the scoop on its folding arm) could dig, scrape and press on the soil. From how hard its motor had to push, engineers estimated how strong the ground is: loose and fluffy on top, much firmer a few centimetres down. That told NASA an Apollo lander would not sink.</p>
+        <p>Surveyor 3's own landing was an accident with a bonus: highly reflective rocks confused its descent radar, so the engine did not cut off at 4.3 m. It bounced to 10 m, then to 3 m, and the footpad prints showed how the soil compresses.</p>
+        <p>In numbers: the scoop reached 1.5 m from the lander and dug up to 18 cm deep. Surveyor 3 dug four trenches and made four bearing tests and thirteen impact tests. Result: the soil behaves like wet sand and holds about 0.7 kg/cm² (98 kPa), enough for an Apollo lunar module. Launch mass 998 kg. Its TV camera had 25 mm and 100 mm lenses under a movable mirror and needed about 20 seconds per 200-line picture.</p>
+        <p class="src">Sources: NASA Science, "Surveyor 3" mission page; NASA NSSDC photo catalogue (AS12-H-48-7100, AS12-H-48-7121); NASA SP-284 "Analysis of Surveyor 3 material and photographs returned by Apollo 12" (1972).</p>
+      </div>
+    </details>
+
+    <div class="st-nav"><button class="btn" type="button" data-station-go="0">← Back</button><span></span></div>
+    <div class="next"><span class="muted">End of chapter 1</span><button class="btn primary big" type="button" data-go="apollo">Continue to chapter 2: Apollo 12 →</button></div>
+  </section>
+</section>

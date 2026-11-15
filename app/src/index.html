@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Monte Carlo Moon</title>
+<meta name="description" content="How far from hardware on the Moon should a lander touch down? A model built from what Apollo 12 did to Surveyor 3. NASA Space Apps Challenge 2026.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<!-- Built into one file by build.py: every stylesheet, partial, module, image and the model data is inlined. -->
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/story.css">
+<link rel="stylesheet" href="css/model.css">
+<link rel="stylesheet" href="css/future.css">
+</head>
+<body>
+<!-- @include partials/topbar.html -->
+<main class="app">
+<!-- @include partials/intro.html -->
+<!-- @include partials/ch1-surveyor.html -->
+<!-- @include partials/ch2-apollo.html -->
+<!-- @include partials/ch3-model.html -->
+<!-- @include partials/ch4-future.html -->
+<!-- @include partials/sources.html -->
+</main>
+<!-- @include partials/tourbar.html -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script type="application/json" id="app-data">@APP_DATA@</script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

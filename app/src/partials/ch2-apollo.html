@@ -1,0 +1,121 @@
+<!-- =============================================== CHAPTER 2 -->
+<section class="chapter" id="ch-apollo" data-ch="apollo" hidden>
+  <div class="ch-head">
+    <span class="eyebrow">Chapter 2 · November 1969</span>
+    <h1>Apollo 12 drops by</h1>
+    <p class="lede">Mission goal: land a crewed spacecraft right next to another one. Target: Surveyor 3. Precision landing: GO. Sandblasting the target: not in the flight plan.</p>
+    <p class="chap-meta"></p>
+  </div>
+
+  <nav class="stations" aria-label="Stations in this chapter">
+    <button type="button" data-station="0"><span class="st-num">1</span><span class="st-txt"><b>The landing</b><small>Four days in 1969</small></span></button>
+    <button type="button" data-station="1"><span class="st-num">2</span><span class="st-txt"><b>Watch the dust</b><small>Two views of the blast</small></span></button>
+    <button type="button" data-station="2"><span class="st-num">3</span><span class="st-txt"><b>The evidence</b><small>Pits and paint</small></span></button>
+  </nav>
+
+  <section class="station" data-station="0" aria-labelledby="s2h0">
+    <header class="st-head">
+      <span class="st-of">Station 1 of 3</span>
+      <h2 class="h2" id="s2h0">The landing</h2>
+      <p class="muted"><b>Your job:</b> read how Apollo 12 came down right next to Surveyor 3, in four steps.</p>
+    </header>
+    <div class="visit">
+      <figure class="photo">
+        <img src="assets/as12-48-7121.jpg" alt="Surveyor 3 on the Moon, photographed up close by Alan Bean in 1969, with its scoop arm, camera and solar panel." width="1200" height="961">
+        <figcaption>Surveyor 3 up close on the second moonwalk, 20 Nov 1969. Scoop arm on the right. Photo: Alan Bean / NASA (AS12-48-7121)</figcaption>
+      </figure>
+      <div class="events">
+        <div class="event"><span>1</span><div><time>14 Nov 1969</time><h3>Launch into a storm</h3><p>Apollo 12 launches into rain clouds. Lightning hits the rocket twice in the first minute, and the crew flies on.</p></div></div>
+        <div class="event"><span>2</span><div><time>19 Nov 1969, 06:54 UT</time><h3>A pinpoint landing</h3><p>Pete Conrad steers the lander Intrepid down just 155 m from Surveyor 3. It proves astronauts can land exactly where they plan.</p></div></div>
+        <div class="event"><span>3</span><div><time>The last metres</time><h3>A sandblaster</h3><p>The engine blasts the ground. Dust shoots out sideways, only a few degrees above the surface, and the finest grains fly faster than a rifle bullet. Some of it heads straight for Surveyor.</p></div></div>
+        <div class="event"><span>4</span><div><time>20 Nov 1969</time><h3>Pieces of Surveyor go home</h3><p>On their second moonwalk Conrad and Alan Bean walk over, cut off the camera, the scoop and some tubing, and bring about 10 kg of Surveyor parts back to Earth.</p></div></div>
+      </div>
+    </div>
+
+    <div class="st-nav"><span></span><button class="btn primary" type="button" data-station-go="1">Next station: Watch the dust →</button></div>
+  </section>
+
+  <section class="station" data-station="1" aria-labelledby="s2h1" hidden>
+    <header class="st-head">
+      <span class="st-of">Station 2 of 3</span>
+      <h2 class="h2" id="s2h1">Watch the dust</h2>
+      <p class="muted"><b>Your job:</b> press play on both views: once from the side, once through Surveyor's camera.</p>
+    </header>
+    <div class="card stack">
+      <div class="section-title">
+        <span class="label">Watch it from the side</span>
+        <h2 class="h2">How the dust reached Surveyor 3</h2>
+      </div>
+      <div class="scene3d" id="dustScene" aria-label="Side view animation: the lander descends and blasts a flat sheet of dust towards Surveyor 3, 155 m away."><div class="scene-hud" id="dustHud"></div></div>
+      <div class="scene-controls">
+        <button class="btn primary" type="button" id="dustPlay">▶ Land Intrepid</button>
+        <span class="note">Spacecraft drawn 2.5× larger so you can see them, and time runs faster than in reality. Distances and the dust angles (the ones measured in the Apollo films) are to scale. The pit counter shows the 1969 lab count building up with the share of dust our model says was thrown at each height.</span>
+      </div>
+    </div>
+
+    <div class="card stack">
+      <div class="section-title">
+        <span class="label">Surveyor's view</span>
+        <h2 class="h2">What Surveyor 3 would have seen</h2>
+      </div>
+      <div class="scene3d pov" id="povScene" aria-label="View from Surveyor 3's camera: the Apollo 12 lander comes down 155 m away and dust pits the side facing it."><canvas class="pov-overlay" id="povOverlay"></canvas></div>
+      <div class="scene-controls">
+        <button class="btn primary" type="button" id="povPlay">▶ Look through Surveyor's camera</button>
+        <span class="note">Surveyor 3 had been silent since May 1967, so this is a reconstruction of what its camera would have seen. The marks on the lens stand for the pits counted later on the side facing the lander.</span>
+      </div>
+    </div>
+
+    <div class="st-nav"><button class="btn" type="button" data-station-go="0">← Back</button><button class="btn primary" type="button" data-station-go="2">Next station: The evidence →</button></div>
+  </section>
+
+  <section class="station" data-station="2" aria-labelledby="s2h2" hidden>
+    <header class="st-head">
+      <span class="st-of">Station 3 of 3</span>
+      <h2 class="h2" id="s2h2">The evidence</h2>
+      <p class="muted"><b>Your job:</b> look at what the dust did to Surveyor's metal and paint. These pits are the one real measurement behind our model: they set the scale of every number on the map.</p>
+    </header>
+    <div class="card pits">
+      <canvas id="pitCanvas" width="560" height="560" aria-label="A one-square-centimetre patch with about 103 tiny pits"></canvas>
+      <div class="stack">
+        <span class="label">What scientists found back on Earth</span>
+        <div class="bigfig">103 <span>pits per cm²</span></div>
+        <p>On metal from the side that faced the lander, scientists counted about 103 tiny pits in every square centimetre, each about as wide as a hair (around 80 µm). The square on the left is 1 cm × 1 cm, drawn with that many pits.</p>
+        <p class="muted">The side facing away was much cleaner: Surveyor 3 had been sandblasted by Apollo 12's engine.</p>
+      </div>
+    </div>
+
+    <figure class="card sem">
+      <div class="section-title">
+        <span class="label">Under the electron microscope</span>
+        <h2 class="h2">Surveyor's paint, before and after</h2>
+      </div>
+      <div class="sem-pair">
+        <div><img src="assets/sem_before.jpg" alt="Electron microscope image of Surveyor 3's white paint before sandblasting: rounded pigment grains." width="286" height="228"><span>Before: fresh paint</span></div>
+        <div><img src="assets/sem_after.jpg" alt="Electron microscope image of Surveyor 3's paint after the Apollo 12 landing: grains crushed and mixed with lunar dust." width="286" height="228"><span>After 1969: sandblasted</span></div>
+      </div>
+      <figcaption class="note">Magnified 1,000 times; the white bar is 10 µm, about a tenth of a hair. After the Apollo 12 landing the paint grains are crushed and lunar dust is pressed into the paint. On the side facing the lander, more than 1 cm² of dust hit every cm² of surface, and sand-sized grains struck about 10⁶ times per m², roughly 100 per cm². Image: NASA, from Metzger (2020), <i>Lunar Dust 2020</i>, LPI Contrib. 2141.</figcaption>
+    </figure>
+
+    <details class="nerd">
+      <summary>Nerd mode: what was measured on the returned parts</summary>
+      <div class="nerd-body">
+        <div class="tbl"><table>
+          <thead><tr><th>Part</th><th>Finding</th><th>Source</th></tr></thead>
+          <tbody>
+            <tr><td>Aluminium coupons 2050/2051</td><td>103 pits/cm², mean entry 83.7 × 74.5 µm, depth 88.4 µm</td><td>Immer et al. 2011, <i>Icarus</i> 211</td></tr>
+            <tr><td>Polished aluminium tube</td><td>pits ≥ 20 µm counted; up to 40 per mm² in the worst areas</td><td>LPSC 1971</td></tr>
+            <tr><td>Screw</td><td>6 low-speed craters from grains of about 1 µm</td><td>MPI für Kernphysik, NTRS 19720019104</td></tr>
+            <tr><td>White paint (electron microscope)</td><td>pigment crushed and mixed with dust; &gt; 1 cm² of dust per cm²; sand-sized impacts ≈ 10⁶ per m²</td><td>Metzger 2020, Lunar Dust 2020 (NASA images)</td></tr>
+            <tr><td>TV camera housing</td><td>many shallow low-speed pits on the lander side; 5 micrometeorite craters (130–300 µm)</td><td>NASA SP-284</td></tr>
+          </tbody>
+        </table></div>
+        <p><b>How far away was Surveyor 3?</b> Reports say 155 m (NASA SP-284) or "about 180 m". The LRO-based coordinates in NASA's NSSDCA catalogue (lander 3.0128° S, 23.4219° W; Surveyor 3 3.0162° S, 336.582° E) give <b>157 m</b>, so our model uses 155 m.</p>
+        <p>More from the catalogue: Intrepid's descent stage is 4.2 m across, its footpads span 9.4 m, and its engine could throttle up to about 45 kN. After the crew left, the empty ascent stage was crashed into the Moon on purpose, and the seismometer they had just set up recorded the first artificial moonquake.</p>
+        <p>Photogrammetry of the Apollo landing films puts the dust ejection angle at 1.4° to 8.1° depending on the landing, most of them between 1.4° and 3.3° (Immer, Lane, Metzger, Clements). Pit shapes on Surveyor suggest impact speeds of a few hundred to about 2000 m/s (Brownlee et al. 1972).</p>
+      </div>
+    </details>
+
+    <div class="st-nav"><button class="btn" type="button" data-station-go="1">← Back</button><span></span></div>
+    <div class="next"><span class="muted">End of chapter 2</span><button class="btn primary big" type="button" data-go="simulation">Continue to chapter 3: The model →</button></div>
+  </section>
+</section>

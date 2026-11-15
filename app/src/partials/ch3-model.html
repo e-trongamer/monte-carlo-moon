@@ -1,0 +1,95 @@
+<!-- =============================================== CHAPTER 3 -->
+<section class="chapter" id="ch-simulation" data-ch="simulation" hidden>
+  <div class="ch-head">
+    <span class="eyebrow">Chapter 3 · the model</span>
+    <h1>Rebuilding the dust storm</h1>
+    <p class="lede">Flying a lander to the Moon to test this is slightly over our budget. So we throw 10 million virtual dust grains instead and count where they land. It works like finding out how often a dart hits the bullseye: throw thousands of darts and count. The method is named Monte Carlo, after the famous casino, because it runs on chance. So are we.</p>
+    <p class="chap-meta"></p>
+  </div>
+
+  <nav class="stations" aria-label="Stations in this chapter">
+    <button type="button" data-station="0"><span class="st-num">1</span><span class="st-txt"><b>How it works</b><small>Four steps, engine to pit</small></span></button>
+    <button type="button" data-station="1"><span class="st-num">2</span><span class="st-txt"><b>Throw the dice</b><small>Run a mini Monte Carlo</small></span></button>
+    <button type="button" data-station="2"><span class="st-num">3</span><span class="st-txt"><b>Why the range?</b><small>Switch model versions on and off</small></span></button>
+  </nav>
+
+  <section class="station" data-station="0" aria-labelledby="st0h">
+    <header class="st-head">
+      <span class="st-of">Station 1 of 3</span>
+      <h2 class="h2" id="st0h">How the model works</h2>
+      <p class="muted"><b>Your job:</b> click the four tabs, or just watch. Each one shows one step, from the engine blast to the pit in the metal.</p>
+    </header>
+    <div class="card steps">
+      <div class="steptext">
+        <div class="steptabs" role="tablist" id="stepTabs"></div>
+        <h3 id="stepTitle"></h3>
+        <p id="stepText"></p>
+        <details class="nerd"><summary>Nerd mode: the maths</summary><div class="nerd-body" id="stepNerd"></div></details>
+      </div>
+      <div class="scene3d step3d" id="stepScene"><canvas class="sim-canvas" id="stepCanvas" width="720" height="440" aria-label="Animation of the current model step"></canvas><div class="scene-hud" id="stepHud"></div></div>
+    </div>
+    <div class="st-nav"><span></span><button class="btn primary" type="button" data-station-go="1">Next station: Throw the dice →</button></div>
+  </section>
+
+  <section class="station" data-station="1" aria-labelledby="st1h" hidden>
+    <header class="st-head">
+      <span class="st-of">Station 2 of 3</span>
+      <h2 class="h2" id="st1h">Throw the dice yourself</h2>
+      <p class="muted"><b>Your job:</b> pick a target distance and press <b>Throw 1,000</b> a few times. Watch the estimate settle. That is Monte Carlo: random grains, counted hits.</p>
+    </header>
+    <div class="card stack" id="mcCard">
+      <div class="mc">
+        <canvas class="sim-canvas" id="mcMap" width="560" height="560" aria-label="Top view: where the thrown grains land around the lander"></canvas>
+        <div class="stack">
+          <div class="field"><label class="label" for="mcDist">Target: hardware 1.5 m tall at</label>
+            <select id="mcDist"><option value="155" selected>155 m (Surveyor 3)</option><option value="500">500 m</option><option value="1000">1 km</option><option value="3000">3 km</option></select></div>
+          <div class="row">
+            <button class="btn primary" type="button" id="mc1k">Throw 1,000</button>
+            <button class="btn primary" type="button" id="mc10k">Throw 10,000</button>
+            <button class="btn" type="button" id="mcReset">Reset</button>
+          </div>
+          <div class="mcstats">
+            <div><span class="label">Grains thrown</span><b id="mcN">0</b></div>
+            <div><span class="label">Hits on target</span><b id="mcHits">0</b></div>
+            <div><span class="label">Hits per million grains</span><b id="mcEst">–</b></div>
+          </div>
+          <svg class="chart" id="mcChart" viewBox="0 0 420 200" role="img" aria-label="Estimate versus number of grains, with a shrinking uncertainty band"></svg>
+          <p class="note">The band shrinks like 1/√N: four times more grains, half the uncertainty. Our real model throws 10 million grains for each of 36 model versions and 6 lander sizes.</p>
+        </div>
+      </div>
+      <details class="nerd"><summary>Nerd mode: what this mini model does</summary><div class="nerd-body">
+        <p>Grain sizes follow a log-normal distribution (1–500 µm). Speed comes from Lane &amp; Metzger's fit <code>u ≈ 2054 / √D[µm] m/s</code>, with a random spread for different launch points. Launch angle: one of the six Apollo film angles ± 0.5°. Flight: ballistic in lunar gravity with Moon curvature. A hit means the grain passes the target distance less than 1.5 m above the ground, so it would strike hardware 1.5 m tall.</p>
+        <span class="formula">estimate p = hits / N,   uncertainty = 1.96 · √(p(1 − p) / N)</span>
+        <p>It is a simplified teaching version: the real model also computes how much dust each part of the ground releases at each moment of the descent.</p>
+      </div></details>
+    </div>
+    <div class="st-nav"><button class="btn" type="button" data-station-go="0">← Back</button><button class="btn primary" type="button" data-station-go="2">Next station: Why the range? →</button></div>
+  </section>
+
+  <section class="station" data-station="2" aria-labelledby="st2h" hidden>
+    <header class="st-head">
+      <span class="st-of">Station 3 of 3</span>
+      <h2 class="h2" id="st2h">Why is the range so big?</h2>
+      <p class="muted">Researchers still disagree on how exhaust lifts dust and at what angle it flies. Instead of picking one answer, we run 36 versions built from the main competing choices (3 erosion laws × 2 speed models × 6 angles) and show the spread. <b>Your job:</b> switch them off and watch how much the estimate moves.</p>
+    </header>
+    <div class="card stack" id="upCard">
+      <div class="up">
+        <div class="stack">
+          <div class="field"><label class="label" for="upLander">Lander</label><select id="upLander"></select></div>
+          <div class="field"><span class="label">Erosion law</span><div class="chips" id="upLaw"></div></div>
+          <div class="field"><span class="label">Grain speed model</span><div class="chips" id="upVel"></div></div>
+          <div class="field"><span class="label">Ejection angle (from the Apollo films)</span><div class="chips" id="upAng"></div></div>
+          <label class="check"><input type="checkbox" id="upMatch" checked> Only versions that pass the pit test</label>
+        </div>
+        <div class="stack">
+          <div class="upresult" id="upResult"></div>
+          <p class="warn-note" id="upWarn" hidden><b>Outside the modelled range.</b> We haven't tested the model above twice the Apollo LM's thrust, and landers this big may dig a crater under the engine, which the model leaves out.</p>
+          <div class="chart-wrap"><svg class="chart" id="upChart" viewBox="0 0 520 300" role="img" aria-label="Exposure curves of the selected model versions"></svg></div>
+          <p class="note">Each line is one model version, for hardware 1.5 m tall. Coloured lines pass the pit test, grey ones don't.</p>
+        </div>
+      </div>
+    </div>
+    <div class="st-nav"><button class="btn" type="button" data-station-go="1">← Back</button><span></span></div>
+    <div class="next"><span class="muted">End of chapter 3</span><button class="btn primary big" type="button" data-go="future">Continue to chapter 4: The future →</button></div>
+  </section>
+</section>
