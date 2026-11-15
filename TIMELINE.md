@@ -26,16 +26,18 @@ No simulation pipeline, analysis scripts, studies, or app implementation from th
 | --- | --- |
 | 14–15 Nov | Gathering and examining information, scientific sources, and technical details relevant to the problem |
 | 14–15 Nov | Consolidating the research and using it as input for Claude |
-| 14–15 Nov | Claude generated initial project files based on the gathered information. Claude is listed as a contributor to reflect this assistance |
+| 14–15 Nov | Claude generated initial project files based on the gathered information and is listed as a contributor to reflect this assistance |
 | 14–15 Nov | The team worked with those generated files: reviewing, testing, correcting, adapting, and integrating them into the project |
 | 14 Nov, 13:16 | GitHub repository created |
 | 14 Nov, 14:44 | Initial project files uploaded in commit `c9a5b85` |
 
-The generated files were a starting point, not a finished project. The team's work continued through review, iteration, and integration.
+The generated files were a starting point, not a finished project. Our team's work continued through review, iteration, and integration.
+Further commits, changes and branching can be seen on GitHub directly.
 
 ## Attribution and use of AI
 
 Claude was used during the hackathon after the team had gathered the relevant information and research. It generated initial files from the team's prompts and supplied material. The team then worked with those files, checking and refining them. Claude is therefore acknowledged as a contributor; its generated output should not be confused with work completed before the hackathon.
+GitHub Copilot VS Code extension was used to rate readability and overall code quality as well as to provide tips on how to improve that further.
 
 ## Reading the Git history
 

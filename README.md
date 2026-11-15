@@ -19,19 +19,42 @@ instead. Details in the [Fig. 5 constants section below](#fig-5-constants).
 
 **Live preview available [right here](https://e-trongamer.github.io/monte-carlo-moon/)**
 
-Build the self-contained browser app with `python app_mockup/build_mockup.py --assemble`,
-then open `app_mockup/index.html`. It contains four chapters: Surveyor 3, Apollo 12,
-the model, and the future, where you plan landings, build pads and berms and
-test them.
+```txt
+python app/build.py                              # reads results/app_data.json
+python app/build.py --check                      # same, plus checks on the bundled code
+python app/build.py --data path/to/app_data.json # if it is somewhere else
+```
+
+Then open `app/dist/index.html`. It is one self-contained file (data,
+images and code inlined), so it opens straight from disk and deploys as is. The
+app has four chapters: Surveyor 3, Apollo 12, the model, and the future, where
+you plan landings, compare pads and berms and see which hardware is still on
+the Moon. A fifth page lists every source with links.
+
+The app's code is split into small parts: one HTML file per chapter in
+`app/src/partials/`, stylesheets in `src/css/` and ES modules in
+`src/js/`. `build.py` puts them together. Edit `src/`, never `dist/`.
+[app/README.md](app/README.md) explains what each module does.
+
+## Repository layout
+
+```txt
+engine/        the model and the studies (Python), plus fig5_traces/
+results/       JSON written by the studies; app_data.json is what the app reads
+app/           the app: src/ (partials, css, js), assets/ (NASA photos), build.py
+```
 
 ## Requirements
 
-Python 3.10+ with `numpy`, `scipy` and `numba` _(optional for acceleration of simulations)_.
+Python 3.10+ with `numpy` and `scipy`; `numba` is optional and speeds up the
+simulations. The app build needs only the Python standard library;
+`build.py --check` also uses Node, if it is installed, to parse the bundled
+JavaScript.
 
 The Monte Carlo cache (`psi_cache/`, about 430 MB) is not in this repository.
 Without it, `escalation.py` and `mitigation.py` recompute everything, which
 takes hours at full resolution. All results the app needs are already in
-`app_data.json`, so rebuilding the app only needs step 7.
+`results/app_data.json`, so rebuilding the app only needs step 7.
 
 ## Simulation pipeline
 
@@ -43,22 +66,20 @@ plus the studies and the app built on it.
 | Step | Script | Needs | Writes |
 | --- | --- | --- | --- |
 | 1 | `psi_simulation.py` | – | the model; every study calls `simulate()`, which caches each configuration in `psi_cache/` |
-| 2 | `escalation.py` | – (fills the cache, hours at full resolution) | `escalation_results.json` |
-| 3 | `pit_calibration.py` | 11.6 kN runs from step 2 | `pit_calibration_results.json`, **`plausible_branches.json`** |
+| 2 | `escalation.py` | – (fills the cache, hours at full resolution) | `results/escalation_results.json` |
+| 3 | `pit_calibration.py` | 11.6 kN runs from step 2 | `results/pit_calibration_results.json`, **`results/plausible_branches.json`** |
 | 4 | `escalation.py` again | step 3 | now uses only the plausible variants (seconds, from cache) |
-| 5 | `mitigation.py` | – (16 more configurations) | `mitigation_results.json` |
-| 6 | `export_app_data.py` | steps 2–5 (never simulates) | `app_data.json` |
-| 7 | `app_mockup/build_mockup.py --assemble` | step 6 | `app_mockup/index.html` |
+| 5 | `mitigation.py` | – (16 more configurations) | `results/mitigation_results.json` |
+| 6 | `export_app_data.py` | steps 2–5 (never simulates) | `results/app_data.json` |
+| 7 | `app/build.py` | step 6 | `app/dist/index.html` |
+
+All studies write JSON only; there are no plots. Every script keeps its
+command-line options (`--help` lists them).
 
 Optional: `fig5_analyze.py` (where the Fig. 5 constants come from), `pit_spectrum.py`,
 `mitigation.py --with-angles` (extra berm panel, several hours of new runs).
 
 `--quick` on any study uses the reduced resolution in `psi_study.QUICK`.
-
-`--plot` on any study also saves its figure as a PNG next to the script
-(`escalation.png`, `pit_calibration.png`, `mitigation.png`, `pit_spectrum.png`,
-`fig5_analysis.png`). The app never uses these figures; only `fig5_analysis.png`
-is kept in the repository, as the evidence for the Eq. 7 finding.
 
 ### Variant filter
 
@@ -75,6 +96,10 @@ threshold (`psi_study.practical_distance`), then median, min and max over the
 variants (`psi_study.distance_band`). The app computes its rings the same way
 from the per-variant curves in `app_data.json`.
 
+Landers above 23.2 kN (twice the Apollo LM, `VALIDATED_MAX_THRUST_N`) are
+outside the range we checked; the app labels them that way. The cut-off is our
+own choice, not a published threshold.
+
 ### Cache
 
 Folder names are `<config hash>_<code tag>`. The code tag
@@ -90,11 +115,14 @@ copied to another computer.
 
 ### Fig. 5 constants
 
-`fig5_analyze.py` derives the `lm_fig5_*` constants in `CONFIG` from the traced
+`fig5_analyze.py` derives the `lm_fig5_*` constants in `Config` from the traced
 contours in `engine/fig5_traces/` (K0 = 2054, h_k = 3.32 m, n = 0.913, s = 36; no-lift
 edge c0 = 7.082, c1 = 3.579) and shows that Eq. 7 as printed does not match the
 figure. It only reports; never edits `psi_simulation.py`.
 
 ## Sources
 
-All sources, with links, are listed in the app under "Sources". Photos: NASA.
+All sources, with links, are listed in the app under "Sources"
+(`app/src/partials/sources.html`).\
+Photos: NASA. 3D scenes: three.js
+(MIT licence), loaded from cdnjs; without it the rest of the app still works.
