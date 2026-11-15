@@ -11,6 +11,8 @@ export const MEASURED = DATA.anchor.measured_per_cm2;       // Surveyor 3: 103 p
 // Our own cut-off (2 × the Apollo LM), not a published threshold.
 export const VALIDATED_MAX_N = DATA.validated_max_thrust_N;
 export const APOLLO_THRUST_N = 11600;
+export const G_MOON = 1.625;                 // m/s², same as config.Moon in the model
+export const R_MOON = 1.7374e6;              // m
 // Why we flag landers above VALIDATED_MAX_N. Shared by the map, advisor and wrap-up.
 export const OUTSIDE_RANGE_WHY = `Above ${(VALIDATED_MAX_N / 1000).toFixed(1)} kN (twice the Apollo LM) we haven't tested the model, `
   + "and heavier landers may dig a crater under the engine instead of only blowing off the top layer. The model leaves that out.";

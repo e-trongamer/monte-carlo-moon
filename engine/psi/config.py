@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Any
 
 
-RESULTS_DIR = Path(__file__).parent.parent / "results"
+RESULTS_DIR = Path(__file__).resolve().parents[2] / "results"
 
 
 class ErosionLaws(StrEnum):
@@ -151,7 +151,7 @@ class Erosion:
     energy_flux: EnergyFluxLaw = EnergyFluxLaw()
     
     def __post_init__(self):
-        object.__setattr__(self, "laws", tuple(_member(ErosionLaws(x)) for x in self.laws))
+        object.__setattr__(self, "laws", tuple(_member(ErosionLaws, x) for x in self.laws))
 
 
 @dataclass(frozen=True)
@@ -189,7 +189,7 @@ class Velocity:
     nozzle diameter goes as thrust^0.5; the Fig. 5 knee and the acceleration
     path are taken proportional to it, and K0 to its square root.
     """
-    model: str = "integrated"
+    model: VelocityModels = VelocityModels.INTEGRATED
     accel_path_m: float = 10.0
     accel_path_thrust_exp: float = 0.5
     step_rel: float = 0.02 # integration step / radius
@@ -197,6 +197,9 @@ class Velocity:
     fig5_reference_thrust_n: float = 11_600.0
     fig5_k0_thrust_exp: float = 0.25
     fig5_knee_thrust_exp: float = 0.5
+
+    def __post_init__(self):
+        object.__setattr__(self, "model", _member(VelocityModels, self.model))
 
 
 @dataclass(frozen=True)
@@ -250,7 +253,7 @@ class Damage:
 
 @dataclass(frozen=True)
 class MonteCarlo:
-    particles_per_branch: int = 1_000_000
+    particles_per_branch: int = 10_000_000
     seed: int = 20261107
 
 
@@ -284,6 +287,10 @@ class Config:
         for path, value in changes.items():
             out = _replace_path(out, path.split("."), value, path)
         return out
+
+    def to_dict(self, *, skip_post: bool = False) -> dict[str, Any]:
+        """Return a plain, JSON-ready representation of this configuration."""
+        return _as_plain(self, skip_post)
 
     # -- identity --------------------------------------------------------------
     def run_hash(self) -> str:

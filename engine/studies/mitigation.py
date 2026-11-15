@@ -27,7 +27,7 @@ import time
 
 import numpy as np
 
-import psi_simulation as P
+import engine.psi.psi_simulation as P
 import psi_study as S
 
 THRUSTS = [11600.0, 44000.0]
@@ -49,15 +49,20 @@ BERM_TEST = {"mitigation.berm_radius_m": BERM_R, "mitigation.berm_height_m": 3.0
 TEST_DISTANCES = (200.0, 1000.0)
 
 
+def transmission_configs(base, thrust):
+    """(without berm, with berm) per velocity model, over the wider ANGLES."""
+    common = base.with_(**{"engine.thrust_n": thrust, "ejection.angles_deg": ANGLES})
+    return [(c, c.with_(**BERM_TEST)) for c in
+            (common.with_(**{"velocity.model": vm}) for vm in S.VELOCITY_MODELS)]
+
+
 def berm_transmission(base, thrust):
     """Exposure with a 3 m berm / without, per branch, at TEST_DISTANCES.
     Not anchored: the same branch with and without the berm."""
     out = {}
-    common = base.with_(**{"engine.thrust_n": thrust, "ejection.angles_deg": ANGLES})
-    for vm in S.VELOCITY_MODELS:
-        plain_cfg = common.with_(**{"velocity.model": vm})
+    for plain_cfg, berm_cfg in transmission_configs(base, thrust):
         plain = P.simulate(plain_cfg)
-        berm = P.simulate(plain_cfg.with_(**BERM_TEST))
+        berm = P.simulate(berm_cfg)
         tg = plain_cfg.targets
         iz = S.nearest(tg.heights_m, tg.hardware_height_m)
         for tag, b in plain["branches"].items():
@@ -81,6 +86,11 @@ def main():
     base = S.base_config(a.quick)
     threshold = THRESHOLD * base.surveyor.pit_density_per_cm2
     grid_max = float(base.targets.distances_m[-1])
+
+    S.prefetch([c for thrust in THRUSTS for _, changes, _ in CASES
+                for c in S.run_set_configs(base.with_(**changes, **{"engine.thrust_n": thrust}))]
+               + [c for thrust in THRUSTS for pair in transmission_configs(base, thrust) for c in pair],
+               label="mitigation")
 
     practical, exposure = {}, {}
     for thrust in THRUSTS:

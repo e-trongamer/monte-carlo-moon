@@ -1,0 +1,2 @@
+# Optional Numba backend for faster Monte Carlo trajectory accumulation.
+numba>=0.59

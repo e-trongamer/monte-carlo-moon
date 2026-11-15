@@ -16,7 +16,6 @@ Writes escalation_results.json.
 from __future__ import annotations
 
 import argparse
-import os
 import time
 
 import psi_study as S
@@ -60,6 +59,10 @@ def main():
 
     base = S.base_config(a.quick)
     meas = base.surveyor.pit_density_per_cm2
+
+    S.prefetch([c for thrust in [t for _, t in SCENARIOS] + [a.repeat_scenario]
+                for c in S.run_set_configs(base.with_(**{"engine.thrust_n": thrust}))],
+               label="escalation")
 
     results = {}
     for name, thrust in SCENARIOS:

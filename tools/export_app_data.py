@@ -15,16 +15,16 @@ variants are kept alongside under "all_branches" for comparison.
 from __future__ import annotations
 
 import argparse
+import os
 from datetime import datetime, timezone
-from pathlib import Path
 
 import numpy as np
 
-import engine.studies.escalation as E
-import engine.studies.mitigation as M
-import engine.studies.psi_study as S
+import escalation as E
+import mitigation as M
+import psi_study as S
 
-HERE = Path(__file__).parent.parent
+HERE = os.path.dirname(os.path.abspath(__file__))
 # -3 m = Surveyor III's crater setting (the anchor height); the rest are
 # hardware heights above flat ground.
 HARDWARE_HEIGHTS = [-3.0, 0.0, 1.5, 3.0, 5.0, 8.0]
@@ -77,7 +77,8 @@ def main():
            "distances_m": [float(x) for x in base.targets.distances_m],
            "hardware_heights_m": HARDWARE_HEIGHTS, "landers": [], "skipped": [],
            "branch_filter": ({"applied": True, "n_kept": finfo["n_kept"], "n_total": finfo["n_total"],
-                              "rule": finfo["rule"], "kept": finfo["kept"]} if keep
+                              "rule": finfo["rule"], "kept": finfo["kept"],
+                              "min_grains": finfo.get("min_grains")} if keep
                              else {"applied": False})}
 
     for name, thrust in E.SCENARIOS:
@@ -145,7 +146,7 @@ def main():
     if mit["missing"]:
         print(f"[export] mitigation: {len(mit['missing'])} cases not cached yet, skipped")
 
-    path = HERE / "app_data.json"
+    path = os.path.join(HERE, "app_data.json")
     S.write_json(path, out)
     print(f"wrote {path}")
 

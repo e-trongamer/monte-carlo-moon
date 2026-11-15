@@ -66,7 +66,7 @@ function renderLearned() {
 function renderLimits() {
   const limits = [
     `The absolute scale comes from one measurement (Surveyor 3, ${DATA.anchor.measured_per_cm2} pits/cm²).`,
-    FILTER ? "The crater-size constant is tuned to the pit size on the Surveyor coupons; model versions whose pit count then misses the measured range are left out." : null,
+    FILTER ? `The crater-size constant is tuned to the pit size on the Surveyor coupons; model versions whose pit count then misses the measured range, or that rest on fewer than ${FILTER.min_grains || 20} simulated grains there, are left out.` : null,
     OUTSIDE_RANGE_WHY,
     "Repeated landings add up linearly; worn pads and growing craters are not modelled.",
     "Ejected grains fly ballistically; collisions inside the dust sheet are ignored.",

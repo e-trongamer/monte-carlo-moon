@@ -20,11 +20,14 @@ Writes pit_spectrum_results.json.
 from __future__ import annotations
 
 import argparse
+import os
+
 import numpy as np
 
-import psi_simulation as P
+import engine.psi.psi_simulation as P
 import psi_study as S
 
+HERE = os.path.dirname(os.path.abspath(__file__))
 PIT_SIZES_UM = [1, 2, 5, 10, 20, 50, 80, 100, 150, 200, 300]
 MEASURED = {
     "coupons": {
@@ -47,9 +50,10 @@ MEASURED = {
 
 def surveyor_pits(base, thrust):
     """Per-branch pits at Surveyor III's bin (distance, crater height), from
-    the cache. Returns ({"<vm>|<law>|<angle>": (per_cm2, pit_diameter_um)},
-    geometry, missing velocity models); both arrays are per grain class.
-    Diameter = 2 x depth (hemispherical crater)."""
+    the cache. Returns ({"<vm>|<law>|<angle>": (per_cm2, pit_diameter_um, grains)},
+    geometry, missing velocity models); all three arrays are per grain class.
+    Diameter = 2 x depth (hemispherical crater). `grains` is the number of
+    simulated grains behind each value, i.e. how much Monte Carlo noise it has."""
     pits, geometry, missing = {}, None, []
     for vm in S.VELOCITY_MODELS:
         cfg = base.with_(**{"engine.thrust_n": thrust, "velocity.model": vm})
@@ -62,11 +66,13 @@ def surveyor_pits(base, thrust):
         geometry = geometry or {"distance_m": tg.distances_m[iR], "height_m": tg.heights_m[iz],
                                 "K_D": cfg.damage.divot_coefficient,
                                 "H_vickers_Pa": cfg.damage.target_hardness_pa}
-        for tag, d in st["acc"]["mc"].items():
+        for tag in st["acc"]["mc"]:
+            d = P.branch_mc(st, tag)
             n = np.array(d["density"])[iz, iR]
             depth = np.divide(np.array(d["depth_sum"])[iz, iR], n,
                               out=np.zeros_like(n), where=n > 0)
-            pits[f"{vm.value}|{tag}"] = (n, 2.0 * depth)
+            grains = np.array(d["hit_counts"])[iz, iR]
+            pits[f"{vm.value}|{tag}"] = (n, 2.0 * depth, grains)
     return pits, geometry, missing
 
 
@@ -92,11 +98,13 @@ def main():
     D_um = (P.build_grids(base).D * 1e6).round(2).tolist()
 
     branches = {}
-    for key, (n, diam) in pits.items():
+    for key, (n, diam, grains) in pits.items():
         cum, mean20 = spectrum(n, diam)
         branches[key] = {"cumulative_per_cm2": cum, "mean_pit_um_ge20": mean20,
+                         "simulated_grains": int(grains.sum()),
                          "by_grain": {"D_um": D_um, "per_cm2": n.tolist(),
-                                      "pit_diameter_um": diam.tolist()}}
+                                      "pit_diameter_um": diam.tolist(),
+                                      "simulated_grains": grains.tolist()}}
 
     i20, i80 = PIT_SIZES_UM.index(20), PIT_SIZES_UM.index(80)
     rows = []
@@ -111,7 +119,7 @@ def main():
         v = [r[key] for r in subset if r[key] is not None]
         return float(np.median(v)) if v else None
 
-    largest = max((float(diam[n > 0].max()) for n, diam in pits.values() if (n > 0).any()), default=0.0)
+    largest = max((float(diam[n > 0].max()) for n, diam, _ in pits.values() if (n > 0).any()), default=0.0)
     summary = {
         "n_branches": len(rows), "n_with_large_pits": len(with_large),
         "largest_pit_um_any_branch": largest,
@@ -121,7 +129,7 @@ def main():
         "median_mean_pit_um_ge20": median("mean_pit_um_ge20", rows),
         "measured_ratio_upper_bound": MEASURED["tube"]["max_per_cm2"] / MEASURED["coupons"]["per_cm2"],
     }
-    S.write_json("pit_spectrum_results.json", {
+    S.write_json(os.path.join(HERE, "pit_spectrum_results.json"), {
         "quick": a.quick, "thrust_N": a.thrust, "pit_sizes_um": PIT_SIZES_UM,
         "measured": MEASURED, "geometry": geometry, "missing_velocity_models": missing,
         "crater_model": f"Sheldon-Kanhere, K_D = {geometry['K_D']:g} (placeholder), "

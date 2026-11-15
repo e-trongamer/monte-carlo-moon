@@ -34,7 +34,7 @@ the Moon. A fifth page lists every source with links.
 The app's code is split into small parts: one HTML file per chapter in
 `app/src/partials/`, stylesheets in `src/css/` and ES modules in
 `src/js/`. `build.py` puts them together. Edit `src/`, never `dist/`.
-[app/README.md](app/README.md) explains what each module does.
+[app/Guidelines-for-frontend-updts.md](app/Guidelines-for-frontend-updts.md) explains what each module does.
 
 ## Repository layout
 
@@ -46,8 +46,10 @@ app/           the app: src/ (partials, css, js), assets/ (NASA photos), build.p
 
 ## Requirements
 
-Python 3.10+ with `numpy` and `scipy`; `numba` is optional and speeds up the
-simulations. The app build needs only the Python standard library;
+Python 3.10+ with `numpy` and `scipy`. Numba is optional; install the
+accelerated backend with `python -m pip install -r requirements-accelerated.txt`
+using the same Python interpreter as `run_simulations.py`. Without Numba, the
+simulation uses its slower NumPy fallback. The app build needs only the Python standard library;
 `build.py --check` also uses Node, if it is installed, to parse the bundled
 JavaScript.
 
@@ -63,15 +65,25 @@ plus the studies and the app built on it.
 
 ### Order of the scripts
 
+Run the end-to-end studies and app-data export with:
+
+```txt
+python run_simulations.py --quick  # reduced resolution
+python run_simulations.py          # full resolution; may take hours
+```
+
+The runner supplies the repository, studies, and tools directories to each
+child process's `PYTHONPATH`, then runs the studies in dependency order.
+The app build is separate: `python app/build.py`.
+
 | Step | Script | Needs | Writes |
 | --- | --- | --- | --- |
 | 1 | `psi_simulation.py` | – | the model; every study calls `simulate()`, which caches each configuration in `psi_cache/` |
 | 2 | `escalation.py` | – (fills the cache, hours at full resolution) | `results/escalation_results.json` |
 | 3 | `pit_calibration.py` | 11.6 kN runs from step 2 | `results/pit_calibration_results.json`, **`results/plausible_branches.json`** |
-| 4 | `escalation.py` again | step 3 | now uses only the plausible variants (seconds, from cache) |
-| 5 | `mitigation.py` | – (16 more configurations) | `results/mitigation_results.json` |
-| 6 | `export_app_data.py` | steps 2–5 (never simulates) | `results/app_data.json` |
-| 7 | `app/build.py` | step 6 | `app/dist/index.html` |
+| 4 | `mitigation.py` | – (16 more configurations) | `results/mitigation_results.json` |
+| 5 | `export_app_data.py` | steps 2–4 (never simulates) | `results/app_data.json` |
+| 6 | `app/build.py` | step 5 | `app/dist/index.html` |
 
 All studies write JSON only; there are no plots. Every script keeps its
 command-line options (`--help` lists them).
@@ -81,12 +93,21 @@ Optional: `fig5_analyze.py` (where the Fig. 5 constants come from), `pit_spectru
 
 `--quick` on any study uses the reduced resolution in `psi_study.QUICK`.
 
+`escalation.py` and `mitigation.py` first compute every configuration they
+need that is not cached yet, several at a time in separate processes, and then
+read the cache. `PSI_JOBS` sets how many run side by side (default: a quarter
+of the CPU cores, at most 4; `PSI_JOBS=1` runs them one after another). The
+results do not depend on it.
+
 ### Variant filter
 
 The model has 36 variants (3 erosion laws × 2 velocity models × 6 Apollo
 ejection angles). `pit_calibration.py` fits the crater constant K_D for each one
-against the Surveyor III coupons and keeps the 18 whose pit counts then match
-the measurement. `psi_study.anchored_exposure()` uses only these by default
+against the Surveyor III coupons (counting pits ≥ 20 µm, as the 1971 tube count
+did) and keeps those whose pit counts then match the measurement. A variant
+also needs at least 20 simulated grains at Surveyor III, both in total and among
+the counted pits; with fewer, chance decides the verdict (a 0.3 % change in
+lunar gravity once flipped six variants). `psi_study.anchored_exposure()` uses only these by default
 (`only_plausible=False` gives all 36). `export_app_data.py` stores both.
 
 ### Estimated distance

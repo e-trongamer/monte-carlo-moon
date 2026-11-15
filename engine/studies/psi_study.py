@@ -20,14 +20,17 @@ from __future__ import annotations
 import json
 import math
 import os
+import time
 import warnings
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from typing import NamedTuple
 
 import numpy as np
 
-import psi_simulation as P
-from config import Config, Mitigation, VelocityModels, RESULTS_DIR
+import engine.psi.psi_simulation as P
+from engine.psi.config import Config, Mitigation, VelocityModels, RESULTS_DIR
 
+HERE = os.path.dirname(os.path.abspath(__file__))
 
 # Reduced resolution for quick looks.
 QUICK = {"regolith.n_size_bins": 12, "source.n_rings": 45, "descent.height_step_m": 2.0,
@@ -38,6 +41,10 @@ APOLLO_LM_THRUST_N = 11_600.0
 # Optional branch filter written by pit_calibration.py. Only export_app_data.py
 # applies it; escalation.py and mitigation.py always report every branch.
 PLAUSIBLE_FILE = RESULTS_DIR / "plausible_branches.json"
+# Configurations computed side by side by prefetch(). Each one's source stage
+# runs on one core and its Monte Carlo stage shares the cores with the others.
+# Override with the environment variable PSI_JOBS (1 = one after another).
+JOBS = int(os.environ.get("PSI_JOBS", 0)) or max(1, min(4, (os.cpu_count() or 1) // 4))
 
 
 class Run(NamedTuple):
@@ -74,14 +81,56 @@ def run_set(cfg: Config, velocity_models=VELOCITY_MODELS, cache_dir=None) -> dic
     return out
 
 
-def is_cached(cfg: Config, velocity_models=VELOCITY_MODELS, cache_dir=None) -> bool:
-    """True if run_set(cfg) would only read the cache."""
+def run_set_configs(cfg: Config, velocity_models=VELOCITY_MODELS) -> list[Config]:
+    """Every configuration run_set(cfg) needs: scenario and reference per model."""
+    out = []
     for vm in velocity_models:
         scenario = cfg.with_(**{"velocity.model": vm})
-        for c in (scenario, reference_config(scenario)):
-            if P.cached_state(c, cache_dir) is None:
-                return False
-    return True
+        out += [scenario, reference_config(scenario)]
+    return out
+
+
+def describe(cfg: Config) -> str:
+    m = cfg.mitigation
+    extra = (f", pad {m.pad_radius_m:g} m" if m.pad_radius_m else "") + \
+            (f", berm {m.berm_height_m:g} m at {m.berm_radius_m:g} m" if m.berm_height_m else "")
+    return f"{cfg.engine.thrust_n / 1000:g} kN, {cfg.velocity.model.value}{extra}"
+
+
+def _simulate_in_worker(cfg: Config, cache_dir, threads: int) -> None:
+    P.set_threads(threads)
+    P.simulate(cfg, cache_dir=cache_dir)
+
+
+def prefetch(configs, cache_dir=None, jobs=None, label="prefetch") -> None:
+    """Compute every configuration that is not cached yet, `jobs` at a time in
+    separate processes, so the study loop afterwards only reads the cache.
+    Results are identical to running them one after another."""
+    jobs = jobs or JOBS
+    todo = {}
+    for c in configs:
+        if not P.is_completed(c, cache_dir):
+            todo.setdefault(P.run_directory(c, cache_dir), c)
+    if not todo:
+        return
+    t0 = time.time()
+    print(f"[{label}] {len(todo)} configurations to compute, {min(jobs, len(todo))} at a time")
+    if jobs <= 1 or len(todo) == 1:
+        for i, c in enumerate(todo.values(), 1):
+            P.simulate(c, cache_dir=cache_dir)
+            print(f"[{label}] {i}/{len(todo)} {describe(c)}  ({time.time() - t0:.0f} s)")
+        return
+    threads = max(1, (os.cpu_count() or 1) // jobs)
+    with ProcessPoolExecutor(max_workers=jobs) as pool:
+        futures = {pool.submit(_simulate_in_worker, c, cache_dir, threads): c for c in todo.values()}
+        for i, f in enumerate(as_completed(futures), 1):
+            f.result()
+            print(f"[{label}] {i}/{len(todo)} {describe(futures[f])}  ({time.time() - t0:.0f} s)")
+
+
+def is_cached(cfg: Config, velocity_models=VELOCITY_MODELS, cache_dir=None) -> bool:
+    """True if run_set(cfg) would only read the cache."""
+    return all(P.is_completed(c, cache_dir) for c in run_set_configs(cfg, velocity_models))
 
 
 def load_branch_filter():
@@ -187,5 +236,6 @@ def write_json(path, obj):
     JSON.parse rejects. null means "beyond the grid edge" for a distance and
     "no branch hits here" for an exposure."""
     p = RESULTS_DIR / path if isinstance(path, str) else path
+    p.parent.mkdir(parents=True, exist_ok=True)
     with open(p, "w", encoding="utf-8") as f:
         json.dump(_strict(obj), f, indent=1, allow_nan=False)

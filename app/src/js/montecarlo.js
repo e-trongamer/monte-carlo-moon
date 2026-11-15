@@ -4,7 +4,7 @@
    six Apollo angles, ballistic flight. A "hit" is a grain passing the target
    distance 0-1.5 m above the ground. */
 
-import { APOLLO_ANGLES } from "./data.js";
+import { APOLLO_ANGLES, G_MOON, R_MOON } from "./data.js";
 import { $, css, gaussian } from "./util.js";
 import { drawLanderIcon } from "./icons2d.js";
 
@@ -23,10 +23,10 @@ function throwGrain(d) {
   let hit = false;
   if (th > 0) {
     const dd = d - r0, vh = v * Math.cos(th), t = dd / vh;
-    const z = dd * Math.tan(th) - 0.5 * 1.62 * t * t + dd * dd / (2 * 1.7374e6);
+    const z = dd * Math.tan(th) - 0.5 * G_MOON * t * t + dd * dd / (2 * R_MOON);
     hit = z >= 0 && z <= 1.5;
   }
-  const range = th > 0 ? r0 + v * v * Math.sin(2 * th) / 1.62 : r0;
+  const range = th > 0 ? r0 + v * v * Math.sin(2 * th) / G_MOON : r0;
   return { D, range, hit, orbit: v >= ORBITAL_SPEED };
 }
 

@@ -29,8 +29,8 @@ import os
 import numpy as np
 from scipy.optimize import least_squares
 
-import psi_simulation as P
-from config import Config
+import engine.psi.psi_simulation as P
+from engine.psi.config import Config
 
 # Lane & Metzger (2015) Eq. 7 as printed. Kept here only to show that it does
 # not reproduce Fig. 5; the model uses the digitized fit (CHANGELOG.md).

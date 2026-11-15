@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Plume-surface interaction model: Apollo 12 LM -> Surveyor III, and beyond.
 
 One run, for one configuration (config.Config):
@@ -38,10 +37,14 @@ from typing import NamedTuple
 import numpy as np
 from scipy.special import erf, ndtri
 
-from config import Config, ErosionLaws, Fig5Fit, Sutherland, VelocityModels
+if __package__:
+    from .config import Config, ErosionLaws, Fig5Fit, Sutherland, VelocityModels
+else:
+    from config import Config, ErosionLaws, Fig5Fit, Sutherland, VelocityModels
 
 try:
-    from numba import get_num_threads, get_thread_id, njit, prange
+    from numba import get_num_threads, get_thread_id, njit, prange, set_num_threads
+    from numba import config as _numba_config
     NUMBA_AVAILABLE = True
 except ImportError:
     NUMBA_AVAILABLE = False
@@ -57,8 +60,15 @@ except ImportError:
     def get_thread_id():
         return 0
 
+
+def set_threads(n: int) -> None:
+    """Limit the Monte Carlo stage to n threads (for running several
+    configurations side by side). No effect without numba."""
+    if NUMBA_AVAILABLE:
+        set_num_threads(max(1, min(int(n), _numba_config.NUMBA_NUM_THREADS)))
+
 HERE = os.path.dirname(os.path.abspath(__file__))
-STATE_VERSION = 7
+STATE_VERSION = 8
 
 
 def branch_tag(law: ErosionLaws, angle_deg: float) -> str:
@@ -162,7 +172,7 @@ def tau_threshold(D, cfg: Config) -> float:
                                         + reg.cohesion_n_m / D)
 
 
-def energy_flux_rate(E, cfg: Config, epsilon: float) -> np.ndarray:
+def energy_flux_rate(E, cfg: Config, epsilon: float) -> float:
     """Metzger (2024) Eq. 16, total over all sizes [kg m^-2 s^-1]."""
     law, reg = cfg.erosion.energy_flux, cfg.regolith
     d_mean = law.mean_over_d84 * reg.d50_mass_um * 1e-6 * reg.geometric_sd
@@ -604,6 +614,28 @@ def new_state(cfg: Config, G: Grids) -> dict:
     }
 
 
+MC_ARRAYS = ("hit_counts", "density", "velocity_cubed", "depth_sum", "coverage")
+
+
+def mc_key(tag: str, name: str) -> str:
+    """Name of one branch's Monte Carlo array in the checkpoint's .npz."""
+    return f"mc {tag} {name}"
+
+
+def branch_mc(st, tag: str) -> dict:
+    """One branch's Monte Carlo sums: the scalars from the JSON state plus
+    its per-grain-class arrays, shaped (heights, distances, sizes)."""
+    d = dict(st["acc"]["mc"][tag])
+    d.update({name: st["_arrays"][mc_key(tag, name)] for name in MC_ARRAYS})
+    return d
+
+
+def _array_path(checkpoint_path, array_file):
+    """The .npz sits next to checkpoint.json; only its file name is stored,
+    so a cache folder can be moved or copied to another computer."""
+    return os.path.join(os.path.dirname(os.path.abspath(checkpoint_path)), os.path.basename(array_file))
+
+
 def save_checkpoint(path, state):
     state["updated"] = datetime.now(timezone.utc).isoformat()
     previous = state.get("array_file")
@@ -616,7 +648,7 @@ def save_checkpoint(path, state):
     finally:
         if os.path.exists(tmp):
             os.remove(tmp)
-    state["array_file"] = array_path
+    state["array_file"] = os.path.basename(array_path)
     arrays = state.pop("_arrays")
     try:
         with open(path + ".tmp", "w", encoding="utf-8") as f:
@@ -631,8 +663,10 @@ def save_checkpoint(path, state):
             raise PermissionError(f"could not replace checkpoint {path}")
     finally:
         state["_arrays"] = arrays
-    if previous and previous != array_path and os.path.exists(previous):
-        os.remove(previous)
+    if previous:
+        previous = _array_path(path, previous)
+        if previous != os.path.abspath(array_path) and os.path.exists(previous):
+            os.remove(previous)
 
 
 def load_checkpoint(path, cfg: Config):
@@ -646,9 +680,13 @@ def load_checkpoint(path, cfg: Config):
     if st.get("run_hash") != cfg.run_hash():
         sys.exit(f"[checkpoint] {path} belongs to a different configuration; "
                  f"rerun with --reset.")
-    with np.load(st["array_file"], allow_pickle=False) as arrays:
-        st["_arrays"] = {name: arrays[name] for name in arrays.files}
+    _load_arrays(path, st)
     return st
+
+
+def _load_arrays(path, st):
+    with np.load(_array_path(path, st["array_file"]), allow_pickle=False) as arrays:
+        st["_arrays"] = {name: arrays[name] for name in arrays.files}
 
 
 def delete_checkpoint(path):
@@ -659,8 +697,10 @@ def delete_checkpoint(path):
             array_file = json.load(f).get("array_file")
     except json.JSONDecodeError:
         array_file = None
-    if array_file and array_file.startswith(path + ".") and os.path.exists(array_file):
-        os.remove(array_file)
+    if array_file:
+        array_file = _array_path(path, array_file)
+        if os.path.basename(array_file).startswith(os.path.basename(path) + ".") and os.path.exists(array_file):
+            os.remove(array_file)
     os.remove(path)
 
 
@@ -723,7 +763,7 @@ def run(cfg: Config, checkpoint_path, max_steps=None, save_interval_s=2.0):
         st["steps_done"] = step + 1
         steps_this_run += 1
         paused = max_steps is not None and steps_this_run >= max_steps
-        if i == nD - 1 or paused or time.time() - last_save >= save_interval_s:
+        if paused or time.time() - last_save >= save_interval_s:
             save_checkpoint(checkpoint_path, st)
             last_save = time.time()
         if i == nD - 1:
@@ -735,6 +775,8 @@ def run(cfg: Config, checkpoint_path, max_steps=None, save_interval_s=2.0):
                   f"run again to continue ({time.perf_counter() - t_start:.0f} s)")
             return st, G
 
+    if steps_this_run:
+        save_checkpoint(checkpoint_path, st)    # the finished source grid
     _warn_truncated_footprint(acc)
 
     # --- stage 2: Monte Carlo per branch ----------------------------------
@@ -747,7 +789,9 @@ def run(cfg: Config, checkpoint_path, max_steps=None, save_interval_s=2.0):
                 continue
             t0 = time.perf_counter()
             s = sample_impacts(law, angle, emitted[law], speed_grid, G, cfg)
-            acc["mc"][tag] = {k: (v.tolist() if isinstance(v, np.ndarray) else v) for k, v in s.items()}
+            for name in MC_ARRAYS:
+                arrays[mc_key(tag, name)] = s[name]
+            acc["mc"][tag] = {k: v for k, v in s.items() if k not in MC_ARRAYS}
             st["branches_done"][tag] = True
             save_checkpoint(checkpoint_path, st)
             print(f"[monte carlo] {tag}: {cfg.monte_carlo.particles_per_branch:,} "
@@ -800,9 +844,9 @@ def postprocess(st, G: Grids, cfg: Config) -> dict:
     branches = {}
     for law in cfg.erosion.laws:
         for angle in cfg.ejection.angles_deg:
-            d = acc["mc"].get(branch_tag(law, angle))
-            if d is None:
+            if branch_tag(law, angle) not in acc["mc"]:
                 continue
+            d = branch_mc(st, branch_tag(law, angle))
             density = np.array(d["density"]).sum(axis=2)
             depth_sum = np.array(d["depth_sum"]).sum(axis=2)
             p_hit = np.array(d["hit_counts"]).sum(axis=2) / n_samples
@@ -883,14 +927,30 @@ def run_directory(cfg: Config, cache_dir=None) -> str:
 
 def cached_state(cfg: Config, cache_dir=None):
     """The completed checkpoint state of a cached run, or None. Never runs
-    anything. Holds the per-grain-class Monte Carlo sums under
-    state["acc"]["mc"][branch tag], which results{} only keeps summed."""
+    anything. branch_mc(state, tag) gives the per-grain-class Monte Carlo
+    sums, which results{} only keeps summed."""
+    found = _completed_json(cfg, cache_dir)
+    if found is None:
+        return None
+    path, st = found
+    _load_arrays(path, st)
+    return st
+
+
+def is_completed(cfg: Config, cache_dir=None) -> bool:
+    """True if this configuration is cached and complete (reads only the JSON)."""
+    return _completed_json(cfg, cache_dir) is not None
+
+
+def _completed_json(cfg: Config, cache_dir=None):
     path = os.path.join(run_directory(cfg, cache_dir), "checkpoint.json")
     if not os.path.exists(path):
         return None
     with open(path, encoding="utf-8") as f:
         st = json.load(f)
-    return st if st.get("version") == STATE_VERSION and st.get("status") == "COMPLETED" else None
+    if st.get("version") != STATE_VERSION or st.get("status") != "COMPLETED":
+        return None
+    return path, st
 
 
 def simulate(cfg: Config, cache_dir=None, quiet=True) -> dict:

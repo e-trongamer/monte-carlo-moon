@@ -8,22 +8,25 @@ V = K_D * v^3 D^3 rho^1.5 H^-1.5, and the code converts V into a hemispherical
 crater, so every pit diameter scales as K_D^(1/3). Changing K_D only stretches
 the pit-size axis; impact counts stay the same.
 
-Calibration (per model branch, done once for each counting threshold):
-  1. Counted pits are assumed to be those >= the threshold. 20 um is the
-     threshold of the 1971 optical count on the polished tube; the coupon
-     paper does not state one, so 50 um is tried as well (an ASSUMPTION
-     either way).
-  2. Find k = K_D^(1/3) such that the mean diameter of model pits above the
-     threshold at Surveyor III (155 m, -3 m) equals the coupons' mean entry
-     size, sqrt(83.7 x 74.5) = 79 um.
+Calibration (per model branch):
+  1. Counted pits are those >= 20 um, the threshold of the 1971 optical count
+     on the polished tube (the coupon paper does not state one).
+  2. Find k = K_D^(1/3) such that the mean diameter of model pits >= 20 um at
+     Surveyor III (155 m, -3 m) equals the coupons' mean entry size,
+     sqrt(83.7 x 74.5) = 79 um.
   3. Test, without any further scaling: model N(pits >= 20 um) against the
      coupons (103/cm^2, average) and the tube (up to 4000/cm^2, worst areas).
 
+Monte Carlo guard: pits are stored per grain-size class, so a class that
+holds one or two simulated grains can satisfy step 2 on its own and decide the
+verdict by chance. A branch therefore needs at least MIN_GRAINS simulated grains
+at Surveyor III, and step 2 only accepts a k at which the counted pits rest on
+at least MIN_GRAINS grains. With 20 grains the Poisson error is about 22 %.
+
 A variant is called plausible if step 3 lands between 1/3 x 103/cm^2 and
-4000/cm^2 for at least one threshold. Those variants are written to
-plausible_branches.json. Only export_app_data.py applies that filter (and
-keeps the unfiltered numbers next to it); escalation.py and mitigation.py
-always report every branch.
+4000/cm^2. Those variants are written to plausible_branches.json. Only
+export_app_data.py applies that filter (and keeps the unfiltered numbers next
+to it); escalation.py and mitigation.py always report every branch.
 
     python pit_calibration.py [--quick]
 
@@ -40,7 +43,9 @@ import numpy as np
 import pit_spectrum as PS
 import psi_study as S
 
-COUNT_THRESHOLDS_UM = (20.0, 50.0)              # assumed lower limits of the pit count
+HERE = os.path.dirname(os.path.abspath(__file__))
+COUNT_MIN_UM = 20.0                             # lower limit of the 1971 tube count
+MIN_GRAINS = 20                                 # simulated grains needed (Poisson error ~22 %)
 TARGET_MEAN_UM = math.sqrt(83.7 * 74.5)        # 79.0 um, coupons 2050/2051
 COUPONS_PER_CM2 = 103.0
 TUBE_MAX_PER_CM2 = 4000.0
@@ -53,20 +58,27 @@ def mean_ge(n, d, pmin):
     return float((n[m] * d[m]).sum() / n[m].sum()) if n[m].sum() > 0 else float("nan")
 
 
-def calibrate(pits, count_min_um):
-    """Fit K_D per variant for one counting threshold. Returns (rows, summary)."""
+def calibrate(pits, count_min_um=COUNT_MIN_UM):
+    """Fit K_D per variant. Returns (rows, summary)."""
     rows = []
-    for key, (n, diam) in pits.items():
+    for key, (n, diam, grains) in pits.items():
+        row = {"branch": key, "total_per_cm2": float(n.sum()), "grains_at_surveyor": int(grains.sum())}
+        if grains.sum() < MIN_GRAINS:
+            row.update(k=None, K_D=None, N_ge20=None, N_ge80=None,
+                       status="too few grains", plausible=False)
+            rows.append(row)
+            continue
         means = np.array([mean_ge(n, k * diam, count_min_um) for k in K_GRID])
-        hit = np.where(means >= TARGET_MEAN_UM)[0]
-        row = {"branch": key, "total_per_cm2": float(n.sum())}
-        if n.sum() <= 0 or len(hit) == 0:
+        counted = np.array([grains[k * diam >= count_min_um].sum() for k in K_GRID])
+        hit = np.where((means >= TARGET_MEAN_UM) & (counted >= MIN_GRAINS))[0]
+        if len(hit) == 0:
             row.update(k=None, K_D=None, N_ge20=None, N_ge80=None,
                        status="no solution", plausible=False)
         else:
             k = float(K_GRID[hit[0]])
             dk = k * diam
             row.update(k=k, K_D=k ** 3, status="ok",
+                       grains_counted=int(counted[hit[0]]),
                        N_ge20=float(n[dk >= 20].sum()), N_ge80=float(n[dk >= 80].sum()),
                        mean_ge20=mean_ge(n, dk, 20),
                        cumulative_per_cm2=[float(n[dk >= p].sum()) for p in PS.PIT_SIZES_UM])
@@ -77,8 +89,10 @@ def calibrate(pits, count_min_um):
     med = lambda key: float(np.median([r[key] for r in ok])) if ok else None
     q = lambda key, p: float(np.percentile([r[key] for r in ok], p)) if ok else None
     summary = {
-        "assumption": f"counted pits >= {count_min_um:g} um; target mean diameter {TARGET_MEAN_UM:.1f} um",
+        "assumption": f"counted pits >= {count_min_um:g} um; target mean diameter {TARGET_MEAN_UM:.1f} um; "
+                      f"at least {MIN_GRAINS} simulated grains",
         "n_branches": len(rows), "n_solved": len(ok),
+        "n_too_few_grains": sum(1 for r in rows if r["status"] == "too few grains"),
         "K_D_median": med("K_D"), "K_D_p10": q("K_D", 10), "K_D_p90": q("K_D", 90),
         "N_ge20_median": med("N_ge20"), "N_ge20_p10": q("N_ge20", 10), "N_ge20_p90": q("N_ge20", 90),
         "coupons_per_cm2": COUPONS_PER_CM2, "tube_max_per_cm2": TUBE_MAX_PER_CM2,
@@ -87,8 +101,9 @@ def calibrate(pits, count_min_um):
     return rows, summary
 
 
-def print_threshold(count_min_um, rows, s):
-    print(f"\nCounting threshold {count_min_um:g} um: {s['n_solved']} of {s['n_branches']} variants solvable")
+def print_calibration(rows, s):
+    print(f"\nCounting pits >= {COUNT_MIN_UM:g} um: {s['n_solved']} of {s['n_branches']} variants solvable, "
+          f"{s['n_too_few_grains']} with fewer than {MIN_GRAINS} simulated grains")
     if not s["n_solved"]:
         return
     print(f"  K_D needed: median {s['K_D_median']:.3g}  (10-90 %: {s['K_D_p10']:.3g} - "
@@ -103,7 +118,8 @@ def print_threshold(count_min_um, rows, s):
             flag = "  plausible" if r["plausible"] else ""
             print(f"  {r['branch']:<34} {r['K_D']:7.3g}  {r['N_ge20']:10.3g}  {r['N_ge80']:10.3g}{flag}")
         else:
-            print(f"  {r['branch']:<34}  no solution (total {r['total_per_cm2']:.3g}/cm2)")
+            print(f"  {r['branch']:<34}  {r['status']} ({r['grains_at_surveyor']} grains, "
+                  f"{r['total_per_cm2']:.3g}/cm2)")
 
 
 def main():
@@ -116,40 +132,28 @@ def main():
     if missing:
         raise SystemExit(f"no completed cached run for {missing}; run escalation.py first")
 
-    results = {}
-    for t in COUNT_THRESHOLDS_UM:
-        rows, summary = calibrate(pits, t)
-        results[f"count_min_{t:g}um"] = {"summary": summary, "branches": rows}
-
+    rows, summary = calibrate(pits)
     print(f"K_D calibration at Surveyor III ({'quick' if a.quick else 'full'} cache)")
     print(f"  measured: coupons {COUPONS_PER_CM2:g}/cm^2 (average), tube up to "
           f"{TUBE_MAX_PER_CM2:g}/cm^2 (worst areas)")
-    for t in COUNT_THRESHOLDS_UM:
-        r = results[f"count_min_{t:g}um"]
-        print_threshold(t, r["branches"], r["summary"])
+    print_calibration(rows, summary)
 
-    S.write_json(
-        "pit_calibration_results.json",
-        {
-            "quick": a.quick,
-            "pit_sizes_um": PS.PIT_SIZES_UM,
-            "by_threshold": results,
-        },
-    )
+    S.write_json(os.path.join(HERE, "pit_calibration_results.json"),
+                 {"quick": a.quick, "pit_sizes_um": PS.PIT_SIZES_UM, "count_min_um": COUNT_MIN_UM,
+                  "min_grains": MIN_GRAINS, "summary": summary, "branches": rows})
 
-    by_threshold = {k: sorted(r["branch"] for r in v["branches"] if r["plausible"])
-                    for k, v in results.items()}
-    kept = sorted(set().union(*by_threshold.values()))
+    kept = sorted(r["branch"] for r in rows if r["plausible"])
     S.write_json(S.PLAUSIBLE_FILE, {
         "rule": ("keep a variant if, after calibrating K_D to the coupons' mean pit size "
-                 f"({TARGET_MEAN_UM:.0f} um), its absolute N(pits >= 20 um) at Surveyor III lies "
-                 f"between 1/3 x {COUPONS_PER_CM2:g}/cm^2 (coupon average) and "
-                 f"{TUBE_MAX_PER_CM2:g}/cm^2 (tube maximum), for at least one assumed counting "
-                 "threshold (" + " or ".join(f"{t:g}" for t in COUNT_THRESHOLDS_UM) + " um)"),
+                 f"({TARGET_MEAN_UM:.0f} um, counting pits >= {COUNT_MIN_UM:g} um), its absolute "
+                 f"N(pits >= 20 um) at Surveyor III lies between 1/3 x {COUPONS_PER_CM2:g}/cm^2 "
+                 f"(coupon average) and {TUBE_MAX_PER_CM2:g}/cm^2 (tube maximum); variants with "
+                 f"fewer than {MIN_GRAINS} simulated grains at Surveyor III, or whose calibration "
+                 f"rests on fewer, are left out"),
         "source": f"pit_calibration.py on the {'quick' if a.quick else 'full-resolution'} "
                   f"{S.APOLLO_LM_THRUST_N / 1000:g} kN cache",
-        "quick": a.quick,
-        "n_total": len(pits), "n_kept": len(kept), "kept": kept, "by_threshold": by_threshold,
+        "quick": a.quick, "count_min_um": COUNT_MIN_UM, "min_grains": MIN_GRAINS,
+        "n_total": len(pits), "n_kept": len(kept), "kept": kept,
     })
     print(f"\n{len(kept)} of {len(pits)} variants plausible -> {os.path.basename(S.PLAUSIBLE_FILE)}")
     print("wrote pit_calibration_results.json and plausible_branches.json")

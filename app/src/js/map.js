@@ -112,7 +112,7 @@ function runDescent(to, from, doneLabel, onDone) {
       mapState.L = [...to];
       mapState.alt = DESCENT_CUTOFF_M + (DESCENT_TOP_M - 4 - DESCENT_CUTOFF_M) * Math.pow(1 - u, 2.2);
       phase = mapState.alt < 6 ? "Final metres" : "Descent"; mapState.engineOn = true;
-    } else if (t < T_APPROACH + T_DESCENT + T_DROP) {           // contact light: engine off, fall at 1.62 m/s²
+    } else if (t < T_APPROACH + T_DESCENT + T_DROP) {           // contact light: engine off, falls (animation only)
       const u = (t - T_APPROACH - T_DESCENT) / T_DROP;
       mapState.alt = DESCENT_CUTOFF_M * (1 - u * u); phase = "Contact light · engine stop"; mapState.engineOn = false;
     } else if (t < T_APPROACH + T_DESCENT + T_DROP + T_HOLD) {

@@ -3,7 +3,7 @@
    steps without WebGL) are drawn on a 2D canvas. One animation loop runs while
    the station is on screen. */
 
-import { FILTER, KEPT } from "./data.js";
+import { FILTER, G_MOON, KEPT } from "./data.js";
 import { $, css, seededRandom } from "./util.js";
 import { isShown } from "./router.js";
 import { drawLanderIcon } from "./icons2d.js";
@@ -23,17 +23,17 @@ export const STEPS = [
     text: "Each grain leaves almost flat, only a few degrees above the ground. On Earth, air would slow it down, the push you feel on your hand out of a car window. The Moon has no air, so the grain keeps its speed until gravity, only a sixth of Earth's, pulls it down. The smallest grains are the fastest: up to about 2 km per second, faster than a rifle bullet.",
     nerd: `<p>Every grain flies on a ballistic path in lunar gravity, with a small correction because the Moon is round:</p>
       <span class="formula">x = v·cosθ·t,  z = v·sinθ·t - ½·g·t² + x²/(2R)</span>
-      <p><code>g = 1.62 m/s²</code>, <code>R = 1737 km</code>. Launch angles come from six Apollo landing films (1.4° to 8.1°, ±0.5°). Launch speeds come from two models: a drag calculation and a fit to Lane &amp; Metzger's Fig. 5. That is 10 million grains for each of the 36 versions.</p>` },
+      <p><code>g = ${G_MOON} m/s²</code>, <code>R = 1737 km</code>. Launch angles come from six Apollo landing films (1.4° to 8.1°, ±0.5°). Launch speeds come from two models: a drag calculation and a fit to Lane &amp; Metzger's Fig. 5. That is 10 million grains for each of the 36 versions.</p>` },
   { tab: "Hit", title: "3 · The hit",
     text: "When a grain hits metal it punches a tiny crater, like hail denting a car roof, only much smaller: each pit is about as wide as a hair. Faster and bigger grains make bigger pits. In the formula we use, a grain twice as fast digs a pit with eight times the volume. These are the pits scientists found on Surveyor 3's parts.",
     nerd: `<p>Crater volume from Sheldon &amp; Kanhere (1972):</p>
       <span class="formula">V = K<sub>D</sub> · v³ · D³ · ρ<sup>1.5</sup> · STEP_H<sub>V</sub><sup>-1.5</sup></span>
-      <p><code>ρ = 3100 kg/m³</code> (grain), <code>H_V = 1.05 GPa</code> (aluminium). The constant <code>K_D</code> was a placeholder (1). Comparing with Surveyor 3's real pits showed it must be at least about 100; the exact value depends on how the 2011 study counted small pits.</p>` },
+      <p><code>ρ = 3100 kg/m³</code> (grain), <code>H_V = 1.05 GPa</code> (aluminium). The constant <code>K_D</code> was a placeholder (1). Calibrating each model version against Surveyor 3's real pits puts it in the hundreds or higher, depending on the version.</p>` },
   { tab: "Check", title: "4 · The check",
-    text: `Our model comes in ${N_TOTAL} versions, and nobody knows for sure which is right. Every version is scaled so that it gives the 103 pits per cm² measured on Surveyor 3, so they all agree there by construction. The test is a different one: we tune each version's crater size to the size of the real pits (about 80 µm), then check whether its own, unscaled pit count lands in the range found on Surveyor's parts. That range is wide, so this is a sanity check, not a proof. ${N_KEPT} versions pass, and the map uses only those.`,
+    text: `Our model comes in ${N_TOTAL} versions, and nobody knows for sure which is right. Every version is scaled so that it gives the 103 pits per cm² measured on Surveyor 3, so they all agree there by construction. The test is a different one: we tune each version's crater size to the size of the real pits (about 80 µm), then check whether its own, unscaled pit count lands in the range found on Surveyor's parts. A version whose answer rests on only a few simulated grains is left out too, since chance would decide it. The range is wide, so this is a sanity check, not a proof. ${N_KEPT} versions pass, and the map uses only those.`,
     nerd: `<p>Every result is scaled to the one real measurement:</p>
       <span class="formula">exposure(d) = model(d) / model(Surveyor 3) × 103 pits/cm²</span>
-      <p>A version is kept if, after calibrating the crater constant to the mean pit size on the coupons (79 µm), its own predicted number of pits ≥ 20 µm at Surveyor 3, not scaled, lies between about 34/cm² (a third of the coupon average) and 4000/cm² (the tube's worst spots), for an assumed counting threshold of 20 or 50 µm.</p>
+      <p>A version is kept if, after calibrating the crater constant to the mean pit size on the coupons (79 µm), its own predicted number of pits ≥ 20 µm at Surveyor 3, not scaled, lies between about 34/cm² (a third of the coupon average) and 4000/cm² (the tube's worst spots). Pits are counted from 20 µm, like the 1971 count on the tube. A version also needs at least ${FILTER && FILTER.min_grains ? FILTER.min_grains : 20} simulated grains at Surveyor 3, both in total and among the counted pits; below that, the Monte Carlo noise is larger than about 22 %.</p>
       ${FILTER ? `<p><b>${FILTER.n_kept} of ${FILTER.n_total}</b> versions pass this test.</p>` : ""}` },
 ];
 
