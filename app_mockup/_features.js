@@ -1,81 +1,5 @@
 
 /* =====================================================================
-   SOUND (Web Audio, generated in the browser, off until switched on)
-   ===================================================================== */
-const SFX = {
-  on: false, ctx: null, gain: null,
-  init() {
-    if (this.ctx) return;
-    const C = window.AudioContext || window.webkitAudioContext;
-    if (!C) return;
-    this.ctx = new C();
-    const len = this.ctx.sampleRate * 2, buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate), d = buf.getChannelData(0);
-    let b = 0;
-    for (let i = 0; i < len; i++) { b = 0.985 * b + 0.015 * (Math.random() * 2 - 1); d[i] = b * 4; }   // brown noise = rumble
-    const src = this.ctx.createBufferSource(); src.buffer = buf; src.loop = true;
-    const lp = this.ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 420;
-    this.gain = this.ctx.createGain(); this.gain.gain.value = 0;
-    src.connect(lp); lp.connect(this.gain); this.gain.connect(this.ctx.destination); src.start();
-  },
-  engine(level) {
-    if (!this.ctx) return;
-    this.gain.gain.setTargetAtTime(this.on ? level * 0.55 : 0, this.ctx.currentTime, 0.08);
-  },
-  beep(n = 2) {   // "contact light"
-    if (!this.on || !this.ctx) return;
-    for (let k = 0; k < n; k++) {
-      const o = this.ctx.createOscillator(), g = this.ctx.createGain(), t = this.ctx.currentTime + k * 0.22;
-      o.type = "square"; o.frequency.value = 1180; g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.06, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.15);
-      o.connect(g); g.connect(this.ctx.destination); o.start(t); o.stop(t + 0.16);
-    }
-  },
-  tick(vol = 0.12) {   // a grain hitting metal
-    if (!this.on || !this.ctx) return;
-    const t = this.ctx.currentTime, len = Math.floor(this.ctx.sampleRate * 0.03);
-    const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate), d = buf.getChannelData(0);
-    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
-    const s = this.ctx.createBufferSource(); s.buffer = buf;
-    const hp = this.ctx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 2600;
-    const g = this.ctx.createGain(); g.gain.value = vol;
-    s.connect(hp); hp.connect(g); g.connect(this.ctx.destination); s.start(t);
-  },
-};
-const soundBtn = document.getElementById("soundBtn");
-function setSound(on) {
-  SFX.on = on;
-  if (on) { SFX.init(); if (SFX.ctx && SFX.ctx.state === "suspended") SFX.ctx.resume(); }
-  if (!on) SFX.engine(0);
-  soundBtn.setAttribute("aria-pressed", on ? "true" : "false");
-  soundBtn.setAttribute("aria-label", on ? "Sound on" : "Sound off");
-  document.getElementById("soundWaves").setAttribute("opacity", on ? "1" : ".25");
-  progress.sound = on; store.set(progress);
-}
-soundBtn.onclick = () => setSound(!SFX.on);
-// One monitor loop turns what is happening on screen into sound.
-let lastPhase = "", lastDustHits = 0, lastGameRun = false, lastPovHits = 0, lastMcHits = 0;
-setInterval(() => {
-  if (!SFX.on || !SFX.ctx || document.hidden) { if (SFX.ctx) SFX.engine(0); return; }
-  let lvl = 0;
-  if (state.engineOn) lvl = Math.max(lvl, 0.3 + 0.7 * (1 - Math.min(state.alt, 34) / 34));
-  if (GM.run && GM.s && GM.s.thrust) lvl = Math.max(lvl, 0.85);
-  if (dustRun && dustRun.engine && !dustRun.done) lvl = Math.max(lvl, 0.35 + 0.6 * (1 - dustRun.h / 34));
-  if (POV.run && POV.engine) lvl = Math.max(lvl, 0.25 + 0.5 * (1 - POV.h / 34));
-  SFX.engine(lvl);
-  const ph = document.getElementById("altPhase").textContent;
-  if (ph !== lastPhase && ph.toUpperCase().startsWith("CONTACT")) SFX.beep();
-  lastPhase = ph;
-  if (dustRun && dustRun.hits > lastDustHits) SFX.tick();
-  lastDustHits = dustRun ? dustRun.hits : 0;
-  if (POV.hits > lastPovHits) SFX.tick(0.18);
-  lastPovHits = POV.hits;
-  if (MC.hits > lastMcHits) SFX.tick(0.05);
-  lastMcHits = MC.hits;
-  if (lastGameRun && !GM.run && GM.s && GM.s.h === 0) SFX.beep();
-  lastGameRun = GM.run;
-}, 60);
-
-/* =====================================================================
    3D MOON INTRO (three.js, procedural texture)
    ===================================================================== */
 const GLOBE_SITES = [
@@ -399,7 +323,7 @@ function renderUP() {
   const med = band ? band.med : NaN;
   const fr = (x) => !isFinite(x) ? "> 10 km" : fmtD(x);
   document.getElementById("upResult").innerHTML = dists.length
-    ? `<div><span class="label">Safe distance (median)</span><b>${fr(med)}</b></div>
+    ? `<div><span class="label">Estimated distance (median)</span><b>${fr(med)}</b></div>
        <div><span class="label">Range</span><b style="font-size:17px">${fr(dists[0])} – ${fr(dists[dists.length - 1])}</b></div>
        <div><span class="label">Model versions</span><b>${sel.length}</b></div>`
     : `<div style="grid-column:1/-1"><b style="font-size:16px">No version selected.</b> <span class="muted">Switch at least one option on in every row.</span></div>`;
@@ -464,7 +388,7 @@ function renderHeritage() {
   document.getElementById("herNote").textContent = g.note;
   document.getElementById("herGrid").innerHTML = g.items.map((it, i) => `<article class="her">
       <span class="meta">${it.m}</span><h3>${it.n}</h3><p>${it.t}</p>
-      <div class="links"><a href="${it.url}" target="_blank" rel="noopener">NASA page ↗</a>${it.site != null ? `<button type="button" data-hsite="${i}">Show on the dust map</button>` : ""}</div>
+      <div class="links"><a href="${it.url}" target="_blank" rel="noopener">NASA page ↗</a>${it.site != null ? `<button type="button" data-hsite="${i}">Show on the sandblast map</button>` : ""}</div>
     </article>`).join("");
   document.querySelectorAll("[data-hsite]").forEach((b) => {
     b.onclick = () => { const it = g.items[+b.dataset.hsite]; selectSite(it.site); showMap(); };
@@ -492,7 +416,12 @@ const Tour = { on: false };
 const tourbar = document.getElementById("tourbar");
 const tWait = (ms) => new Promise((res) => { const t0 = performance.now(); const tick = () => (!Tour.on || performance.now() - t0 >= ms) ? res() : setTimeout(tick, 100); tick(); });
 const tGo = async (ch) => { if (currentCh !== ch) { location.hash = "#" + ch; await tWait(500); } };
-const tFocus = (id, block = "center") => { const e = document.getElementById(id); if (e) e.scrollIntoView({ behavior: "smooth", block }); };
+const tFocus = (id, block = "center") => {
+  const e = document.getElementById(id); if (!e) return;
+  const st = e.closest(".station"), ch = e.closest(".chapter");
+  if (st && st.hidden && ch) showStation(+st.dataset.station, false, ch.dataset.ch);
+  e.scrollIntoView({ behavior: "smooth", block });
+};
 function tCap(text, frac) { document.getElementById("tourText").textContent = text; document.getElementById("tourProg").style.width = `${Math.round(frac * 100)}%`; }
 async function runTour() {
   if (Tour.on) return;
@@ -510,7 +439,7 @@ async function runTour() {
     ...STEPS.map((s, i) => async () => { showStation(0); tFocus("stepCanvas"); showStep(i); tCap(s.b, .46 + i * .03); await tWait(5200); }),
     async () => { showStation(1); tFocus("mcCard", "start"); document.getElementById("mcDist").value = "155"; mcReset(); await tWait(600); mcThrow(10000); tCap("Monte Carlo means: throw thousands of random grains and count the hits. The more grains, the smaller the uncertainty.", .6); await tWait(7000); },
     async () => {
-      showStation(2); tFocus("upCard", "start"); tCap("Scientists still disagree on some details, so the model tries every combination. Watch the safe distance jump.", .74);
+      showStation(2); tFocus("upCard", "start"); tCap("Researchers still disagree on how exhaust lifts dust, so the model runs 36 versions and shows the spread. Watch how much the estimate moves.", .74);
       await tWait(2500); UP.laws = new Set(["energy_flux"]); upChips(); renderUP(); await tWait(2500);
       UP.laws = new Set(["scaling"]); upChips(); renderUP(); await tWait(2500);
       UP.laws = new Set(UP_LAWS.map((x) => x[0])); upChips(); renderUP(); await tWait(2000);
@@ -518,15 +447,7 @@ async function runTour() {
     async () => {
       await tGo("future"); showStation(0, false, "future"); tCap("Now the future: new landers near moon bases and historic sites. Where should they land?", .8); await tWait(4500);
     },
-    async () => { showStation(0, false, "future"); tFocus("mapbox"); await tWait(600); document.getElementById("replay").click(); tCap("On our dust map we can replay 1969. The rings show how far the dust is a problem.", .84); await tWait(14500); },
-    async () => {
-      const m = MISSIONS[0]; startMission(m); await tWait(1500);
-      const lander = D.landers.find((l) => l.thrust_N === m.thrust);
-      const need = Math.max(...SITES[m.site].objects.map((o) => ringsFor(lander, o.heightKey || "1.5", 1).find((r) => r.f === m.f).med));
-      const dest = SITES[m.site].objects[m.dest].pos;
-      onMapTap([dest[0] + need * 1.1, dest[1]]); await tWait(900); testLanding();
-      tCap(`Mission: protect Apollo 11's Tranquility Base. Landing ${fmtD(need * 1.1)} away keeps it safe and is still walkable.`, .9); await tWait(14500);
-    },
+    async () => { showStation(0, false, "future"); tFocus("mapbox"); await tWait(600); document.getElementById("replay").click(); tCap("On our sandblast map we can replay 1969. The rings show how far the dust is a problem.", .84); await tWait(14500); },
     async () => {
       showStation(2, false, "future"); tFocus("gamebox"); await tWait(600); startGame(); GM.auto = true;
       tCap("You can also land yourself. Here the autopilot shows how: slow down, land softly, and not too close.", .93);
@@ -613,18 +534,31 @@ function drawSketches() {
 /* =====================================================================
    Hook into chapter changes + init
    ===================================================================== */
+function refreshApollo() {
+  drawPOV();
+  if (SIDE) { render3(SIDE); sideHud(dustRun && dustRun.done ? "CONTACT LIGHT" : "Intrepid on final approach. Press play."); }
+  if (PV3) { render3(PV3); drawPovFrame(POV.done ? "TOUCHDOWN" : "PRESS PLAY"); }
+}
+// Nerd mode: one switch opens every formula and detail box
+const nerdBtn = document.getElementById("nerdBtn");
+function setNerd(on) {
+  document.body.classList.toggle("nerd", on);
+  document.querySelectorAll("details.nerd").forEach((d) => { d.open = on; });
+  nerdBtn.setAttribute("aria-pressed", on ? "true" : "false");
+  progress.nerd = on; store.set(progress);
+}
+nerdBtn.onclick = () => setNerd(!document.body.classList.contains("nerd"));
+if (progress.nerd) setNerd(true);
 const _showChapter = showChapter;
 showChapter = function (ch) {
   _showChapter(ch);
   if (currentCh === "intro") startGlobe();
-  if (currentCh === "log") drawSketches();
-  if (currentCh === "apollo") { drawPOV(); if (SIDE) { render3(SIDE); sideHud(dustRun && dustRun.done ? "CONTACT LIGHT" : "Intrepid on final approach. Press play."); } if (PV3) { render3(PV3); drawPovFrame(POV.done ? "TOUCHDOWN" : "PRESS PLAY"); } }
+  if (currentCh === "apollo") refreshApollo();
   if (currentCh === "simulation") { mcDraw(); mcChart(); renderUP(); stepScene3d(stepIdx); }
 };
 document.querySelector(".brand").style.cursor = "pointer";
 document.querySelector(".brand").onclick = () => { location.hash = "#intro"; };
 initGlobe(); initScenes3d(); mcReset(); upChips(); renderUP(); drawPOV(); renderHeritage();
-if (progress.sound) soundBtn.setAttribute("aria-pressed", "false");   // browsers need a click before sound
 showChapter(currentCh || "intro");
 
 /* =====================================================================

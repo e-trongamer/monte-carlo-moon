@@ -728,7 +728,7 @@ function renderMitigation() {
   const rng = (b) => !b ? "" : `<small style="color:var(--muted);display:block">${b.min == null ? "> 10 km" : fmtD(b.min)} – ${b.max == null ? "> 10 km" : fmtD(b.max)}</small>`;
   tbl.innerHTML = `<thead><tr><th>Option</th>${thrusts.map((t) => `<th style="text-align:right">${t}</th>`).join("")}</tr></thead><tbody>` +
     Object.entries(rows).map(([lab, v]) => `<tr><td>${lab}</td>${thrusts.map((t) => `<td class="n">${f(v[t])}${rng(v[t])}</td>`).join("")}</tr>`).join("") + "</tbody>";
-  note.textContent = `Safe distance where hardware 1.5 m tall gets less than ${M.threshold_x_surveyor}× Surveyor 3's exposure, per landing` +
+  note.textContent = `Estimated distance at which hardware 1.5 m tall gets less than ${M.threshold_x_surveyor}× Surveyor 3's exposure, per landing` +
     (M.filtered ? ", using only model variants that match Surveyor 3" : "") +
     `. Pad-edge erosion, berm erosion and bulk cratering are not modelled, so pads and berms look better here than they will in reality.`;
 }
@@ -792,7 +792,7 @@ function renderAdvisor() {
     <span class="label">Flight control recommends at least</span>
     <div class="big">${isFinite(rec) ? fmtD(rec) : "> 10 km"} <small>from ${o.name}</small></div>
     <p class="note">${fmtR(r.med)} is where the median model variant drops below ${f}× Surveyor 3's exposure, plus ± ${acc} m for landing accuracy.
-      The variants range from ${fmtR(r.lo)} to ${fmtR(r.hi)}; to be safe against all of them, stay beyond ${fmtR(r.hi)}${isFinite(r.hi) ? ` + ${acc} m` : ""}.
+      The variants range from ${fmtR(r.lo)} to ${fmtR(r.hi)}; to stay outside all of them, land beyond ${fmtR(r.hi)}${isFinite(r.hi) ? ` + ${acc} m` : ""}.
       ${o.heightKey ? "Evaluated 3 m below the plain, like Surveyor 3." : "Hardware 1.5 m tall, one landing."}
       ${out ? " This lander is outside the modelled range: deep cratering is expected and not included." : ""}</p>
     <div class="rangebar" aria-hidden="true"><span class="track"></span>

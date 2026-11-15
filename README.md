@@ -17,7 +17,7 @@ instead. Details in the [Fig. 5 constants section below](#fig-5-constants).
 
 ## Try the app
 
-**Live: https://e-trongamer.github.io/monte-carlo-moon/**
+**Live preview available [right here](https://e-trongamer.github.io/monte-carlo-moon/)**
 
 Build the self-contained browser app with `python app_mockup/build_mockup.py --assemble`,
 then open `app_mockup/index.html`. It contains four chapters: Surveyor 3, Apollo 12,
@@ -26,7 +26,7 @@ test them.
 
 ## Requirements
 
-Python 3.10+ with `numpy`, `scipy` and `numba`. `matplotlib` is only needed for `--plot`.
+Python 3.10+ with `numpy`, `scipy` and `numba` _(optional for acceleration of simulations)_.
 
 The Monte Carlo cache (`psi_cache/`, about 430 MB) is not in this repository.
 Without it, `escalation.py` and `mitigation.py` recompute everything, which
@@ -41,7 +41,7 @@ plus the studies and the app built on it.
 ### Order of the scripts
 
 | Step | Script | Needs | Writes |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | `psi_simulation.py` | – | the model; every study calls `simulate()`, which caches each configuration in `psi_cache/` |
 | 2 | `escalation.py` | – (fills the cache, hours at full resolution) | `escalation_results.json` |
 | 3 | `pit_calibration.py` | 11.6 kN runs from step 2 | `pit_calibration_results.json`, **`plausible_branches.json`** |
@@ -91,10 +91,9 @@ copied to another computer.
 ### Fig. 5 constants
 
 `fig5_analyze.py` derives the `lm_fig5_*` constants in `CONFIG` from the traced
-contours in `fig5_traces/` (K0 = 2054, h_k = 3.32 m, n = 0.913, s = 36; no-lift
+contours in `engine/fig5_traces/` (K0 = 2054, h_k = 3.32 m, n = 0.913, s = 36; no-lift
 edge c0 = 7.082, c1 = 3.579) and shows that Eq. 7 as printed does not match the
-figure. It only reports (and with `--plot` draws `fig5_analysis.png`); it never edits
-`psi_simulation.py`.
+figure. It only reports; never edits `psi_simulation.py`.
 
 ## Sources
 

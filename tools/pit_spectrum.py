@@ -20,21 +20,28 @@ Writes pit_spectrum_results.json.
 from __future__ import annotations
 
 import argparse
-import os
-
 import numpy as np
 
 import psi_simulation as P
 import psi_study as S
 
-HERE = os.path.dirname(os.path.abspath(__file__))
 PIT_SIZES_UM = [1, 2, 5, 10, 20, 50, 80, 100, 150, 200, 300]
 MEASURED = {
-    "coupons": {"per_cm2": 103.0, "mean_entry_um": (83.7, 74.5), "depth_um": 88.4,
-                "source": "Immer et al. 2011, Icarus 211 (coupons 2050/2051)"},
-    "tube": {"min_pit_um": 20.0, "max_per_cm2": 4000.0,
-             "source": "LPSC 1971 (polished Al tube, most affected areas)"},
-    "screw": {"particle_um": 1.0, "source": "MPI Kernphysik, NTRS 19720019104"},
+    "coupons": {
+        "per_cm2": 103.0,
+        "mean_entry_um": (83.7, 74.5),
+        "depth_um": 88.4,
+        "source": "Immer et al. 2011, Icarus 211 (coupons 2050/2051)",
+    },
+    "tube": {
+        "min_pit_um": 20.0,
+        "max_per_cm2": 4000.0,
+        "source": "LPSC 1971 (polished Al tube, most affected areas)"
+    },
+    "screw": {
+        "particle_um": 1.0,
+        "source": "MPI Kernphysik, NTRS 19720019104",
+    },
 }
 
 
@@ -114,7 +121,7 @@ def main():
         "median_mean_pit_um_ge20": median("mean_pit_um_ge20", rows),
         "measured_ratio_upper_bound": MEASURED["tube"]["max_per_cm2"] / MEASURED["coupons"]["per_cm2"],
     }
-    S.write_json(os.path.join(HERE, "pit_spectrum_results.json"), {
+    S.write_json("pit_spectrum_results.json", {
         "quick": a.quick, "thrust_N": a.thrust, "pit_sizes_um": PIT_SIZES_UM,
         "measured": MEASURED, "geometry": geometry, "missing_velocity_models": missing,
         "crater_model": f"Sheldon-Kanhere, K_D = {geometry['K_D']:g} (placeholder), "

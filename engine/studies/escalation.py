@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Escalation study: how far from a landing pad must hardware sit?
 
 For each thrust class, every model branch (2 velocity laws x 3 erosion laws x
@@ -21,8 +20,6 @@ import os
 import time
 
 import psi_study as S
-
-HERE = os.path.dirname(os.path.abspath(__file__))
 
 # Thrust classes. Hover thrust ~ landed weight on the Moon (mass x 1.62).
 SCENARIOS = [
@@ -87,7 +84,7 @@ def main():
         repeat[str(n)] = bands(R, exposures, meas)
 
     grid_max = float(R[-1])
-    S.write_json(os.path.join(HERE, "escalation_results.json"), {
+    S.write_json("escalation_results.json", {
         "anchor": {"distance_m": base.surveyor.distance_m,
                    "height_m": base.surveyor.height_m,
                    "measured_per_cm2": meas},

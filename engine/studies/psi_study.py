@@ -26,9 +26,8 @@ from typing import NamedTuple
 import numpy as np
 
 import psi_simulation as P
-from config import Config, Mitigation, VelocityModels
+from config import Config, Mitigation, VelocityModels, RESULTS_DIR
 
-HERE = os.path.dirname(os.path.abspath(__file__))
 
 # Reduced resolution for quick looks.
 QUICK = {"regolith.n_size_bins": 12, "source.n_rings": 45, "descent.height_step_m": 2.0,
@@ -38,7 +37,7 @@ VELOCITY_MODELS = tuple(VelocityModels)
 APOLLO_LM_THRUST_N = 11_600.0
 # Optional branch filter written by pit_calibration.py. Only export_app_data.py
 # applies it; escalation.py and mitigation.py always report every branch.
-PLAUSIBLE_FILE = os.path.join(HERE, "plausible_branches.json")
+PLAUSIBLE_FILE = RESULTS_DIR / "plausible_branches.json"
 
 
 class Run(NamedTuple):
@@ -187,5 +186,6 @@ def write_json(path, obj):
     """Write strict JSON: plain json.dump would emit NaN / Infinity, which
     JSON.parse rejects. null means "beyond the grid edge" for a distance and
     "no branch hits here" for an exposure."""
-    with open(path, "w", encoding="utf-8") as f:
+    p = RESULTS_DIR / path if isinstance(path, str) else path
+    with open(p, "w", encoding="utf-8") as f:
         json.dump(_strict(obj), f, indent=1, allow_nan=False)

@@ -15,8 +15,8 @@ variants are kept alongside under "all_branches" for comparison.
 from __future__ import annotations
 
 import argparse
-import os
 from datetime import datetime, timezone
+from pathlib import Path
 
 import numpy as np
 
@@ -24,7 +24,7 @@ import engine.studies.escalation as E
 import engine.studies.mitigation as M
 import engine.studies.psi_study as S
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+HERE = Path(__file__).parent.parent
 # -3 m = Surveyor III's crater setting (the anchor height); the rest are
 # hardware heights above flat ground.
 HARDWARE_HEIGHTS = [-3.0, 0.0, 1.5, 3.0, 5.0, 8.0]
@@ -145,7 +145,7 @@ def main():
     if mit["missing"]:
         print(f"[export] mitigation: {len(mit['missing'])} cases not cached yet, skipped")
 
-    path = os.path.join(HERE, "app_data.json")
+    path = HERE / "app_data.json"
     S.write_json(path, out)
     print(f"wrote {path}")
 

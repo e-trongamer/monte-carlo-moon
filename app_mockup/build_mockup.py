@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Build index.html: inline ../app_data.json and the NASA photos into template.html.
 
     python export_app_data.py [--quick]

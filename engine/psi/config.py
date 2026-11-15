@@ -17,7 +17,12 @@ import hashlib
 import json
 from dataclasses import dataclass, field, fields, is_dataclass, replace
 from enum import Enum, StrEnum
+from pathlib import Path
 from typing import Any
+
+
+RESULTS_DIR = Path(__file__).parent.parent / "results"
+
 
 class ErosionLaws(StrEnum):
     SCALING = "scaling"         # shear power law, Lane & Metzger 2015

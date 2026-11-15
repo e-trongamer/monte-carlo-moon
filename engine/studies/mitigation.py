@@ -30,7 +30,6 @@ import numpy as np
 import psi_simulation as P
 import psi_study as S
 
-HERE = os.path.dirname(os.path.abspath(__file__))
 THRUSTS = [11600.0, 44000.0]
 THRESHOLD = 0.1                      # fraction of Surveyor III
 BERM_R = 50.0
@@ -101,7 +100,7 @@ def main():
         for (d, angle), ratios in berm_transmission(base, thrust).items():
             transmission[f"{thrust / 1000:g} kN | {d:g} m | {angle:g} deg"] = float(np.median(ratios))
 
-    S.write_json(os.path.join(HERE, "mitigation_results.json"), {
+    S.write_json("mitigation_results.json", {
         "threshold_x_surveyor": THRESHOLD,
         "quick": a.quick,
         "berm_radius_m": BERM_R,

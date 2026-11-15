@@ -665,24 +665,58 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; letter-spacing:
 .sitechips button[aria-pressed="true"], .chips button[aria-pressed="true"] { border-color: #cfd2d6; background: rgba(255,255,255,.08); color: #ffffff; }
 details.nerd summary::before { color: var(--muted); }
 .mstatus { border-color: #4b5563; }
+
+/* ---- UX pass: start screen, answer first, mobile nav, nerd switch, readability */
+.answer { background: rgba(10,12,16,.82); border: 1px solid rgba(243,193,75,.55); border-radius: 12px; padding: 12px 14px; max-width: 640px; color: #f1eee6; font-size: 16px; line-height: 1.45; }
+.answer b { color: var(--accent); }
+.answer small { display: block; color: #c9ccd2; font-size: 13.5px; margin-top: 4px; }
+.hero-cta { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.hero-cta .cta-meta { color: #d5d7dc; font-size: 14px; width: 100%; }
+.chap-meta { color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 4px; }
+.chap-meta b { color: var(--fg); font-weight: 600; }
+.nerd-ico { font: 600 12px var(--font-data); color: var(--accent); }
+body.nerd details.nerd { border-color: var(--accent); }
+.hero::after { background: linear-gradient(180deg, rgba(0,0,0,0) 12%, rgba(0,0,0,.72) 48%, rgba(0,0,0,.93) 100%); }
+.hero-text .lede, .hero-text .eyebrow { text-shadow: 0 1px 10px rgba(0,0,0,.9); }
+.note { font-size: 14px; }
+.label { font-size: 13px; }
+.src { font-size: 13.5px; }
+@media (max-width: 760px) {
+  .topbar-in { flex-wrap: wrap; row-gap: 8px; gap: 8px; }
+  .brand span { display: inline; font-size: 14.5px; }
+  .badgebtn { padding: 6px 10px; }
+  .brand { margin-right: auto; }
+  .chapnav { order: 3; width: 100%; margin-left: 0; justify-content: space-between; gap: 2px; }
+  .chapnav a { padding: 6px 8px; font-size: 13px; gap: 0; }
+  .chapnav a b { display: none; }
+  .chapnav a span { display: inline; }
+}
+@media (max-width: 700px) {
+  .hero img { height: 30svh; min-height: 200px; object-position: 50% 62%; }
+  .hero-text { position: static; padding: 14px 16px 18px; background: #000; gap: 10px; }
+  .hero::after { display: none; }
+  .hero .patch, .hero-text .lede, .hero-text .eyebrow { display: none; }
+  .hero-text h1 { font-size: 32px; }
+  .answer { font-size: 15px; padding: 10px 12px; }
+  .hero-cta .btn { width: 100%; justify-content: center; }
+}
 </style>
 
 <header class="topbar">
   <div class="topbar-in">
     <div class="brand"><i></i><span>Monte Carlo Moon</span></div>
     <nav class="chapnav" aria-label="Chapters">
-      <a href="#surveyor" data-ch="surveyor"><b>1</b><span>Surveyor 3</span></a>
-      <a href="#apollo" data-ch="apollo"><b>2</b><span>Apollo 12</span></a>
-      <a href="#simulation" data-ch="simulation"><b>3</b><span>The model</span></a>
-      <a href="#future" data-ch="future"><b>4</b><span>The future</span></a>
-      <a href="#log" data-ch="log"><b>✎</b><span>Log</span></a>
+      <a href="#surveyor" data-ch="surveyor"><b>1</b><span>Surveyor</span></a>
+      <a href="#apollo" data-ch="apollo"><b>2</b><span>Apollo</span></a>
+      <a href="#simulation" data-ch="simulation"><b>3</b><span>Model</span></a>
+      <a href="#future" data-ch="future"><b>4</b><span>Future</span></a>
       <a href="#sources" data-ch="sources"><b>§</b><span>Sources</span></a>
     </nav>
+    <button class="badgebtn iconbtn" type="button" id="nerdBtn" aria-pressed="false" aria-label="Nerd mode: open all formulas and details">
+      <b class="nerd-ico" aria-hidden="true">&lt;/&gt;</b><span>Nerd mode</span>
+    </button>
     <button class="badgebtn iconbtn" type="button" id="tourBtn" aria-label="Play the guided tour">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg><span>Tour</span>
-    </button>
-    <button class="badgebtn iconbtn" type="button" id="soundBtn" aria-label="Sound off" aria-pressed="false">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor"/><path id="soundWaves" d="M16 8.5a4 4 0 0 1 0 7M18.5 6a7.5 7.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" opacity=".25"/></svg>
     </button>
     <button class="badgebtn" type="button" id="badgeBtn" aria-label="Badges">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8.5 14 7 22l5-3 5 3-1.5-8" fill="none" stroke="currentColor" stroke-width="2"/></svg>
@@ -730,29 +764,30 @@ details.nerd summary::before { color: var(--muted); }
         <svg class="patch" role="img" aria-label="Monte Carlo Moon mission patch"><use href="#patchSym"/></svg>
         <span class="eyebrow">Ocean of Storms, 20 November 1969 · NASA frame AS12-48-7134</span>
         <h1>We were really up there.</h1>
-        <p class="lede">That's Pete Conrad next to the robot Surveyor 3. On the horizon, 155 m away, is the lander that just sandblasted it. Back then nobody cared, because nobody lived on the Moon. That is about to change.</p>
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <button class="btn primary big" type="button" data-go="surveyor">Start with chapter 1 →</button>
-          <button class="btn big ghost" type="button" id="introTour">▶ Watch the tour</button>
+        <p class="lede">That's Pete Conrad next to the robot Surveyor 3. On the horizon, 155 m away, is the lander that just sandblasted it. Back then it was a puzzle for engineers, not a planning problem, because nobody lived on the Moon. That is about to change.</p>
+        <p class="answer" id="heroAnswer"></p>
+        <div class="hero-cta">
+          <button class="btn primary big" type="button" data-go="surveyor">Start the story →</button>
+          <button class="btn big ghost" type="button" id="introTour">▶ Watch the tour (about 3 min)</button>
+          <span class="cta-meta" id="ctaMeta">4 chapters</span>
         </div>
       </div>
     </figure>
 
     <div class="where">
-      <div class="globe" id="globe" aria-label="Rotating Moon with three marked sites">
+      <div class="globe" id="globe" role="img" aria-label="Rotating Moon with three marked sites">
         <div class="globe-labels" id="globeLabels"></div>
       </div>
       <div class="intro-text">
         <span class="eyebrow">Flight plan</span>
         <h2 class="h2big">Houston, we have a dust problem.</h2>
-        <p class="lede">We're two students who like maths. We picked a problem nobody had to care about yet: once people live on the Moon, a landing next to their base must not go wrong. So we rebuilt the 1969 dust storm with millions of virtual grains to work out how far is far enough.</p>
+        <p class="lede">We're two students who like maths. We picked a problem that hasn't mattered much for planning yet: once people live on the Moon, a landing next to their base must not go wrong. So we rebuilt the 1969 dust storm with millions of virtual grains to work out how far is far enough.</p>
         <div class="sitechips" id="siteChips"></div>
         <ol class="flightplan">
           <li><a href="#surveyor"><b>01</b> The robot that went first</a></li>
           <li><a href="#apollo"><b>02</b> The visit that sandblasted it</a></li>
           <li><a href="#simulation"><b>03</b> Our model of the dust storm</a></li>
           <li><a href="#future"><b>04</b> How far is far enough?</a></li>
-          <li><a href="#log"><b>LOG</b> What went wrong along the way</a></li>
         </ol>
       </div>
     </div>
@@ -764,8 +799,20 @@ details.nerd summary::before { color: var(--muted); }
       <span class="eyebrow">Chapter 1 · April 1967</span>
       <h1>Meet Surveyor 3</h1>
       <p class="lede">Before anyone set foot on the Moon, someone had to check that the ground wouldn't swallow the lander. That job went to a robot. It is still standing up there.</p>
+      <p class="chap-meta" data-meta="surveyor"></p>
     </div>
 
+    <nav class="stations" id="stations1" aria-label="Stations in this chapter">
+      <button type="button" data-station="0"><span class="st-num">1</span><span class="st-txt"><b>Inspect the robot</b><small>Five parts to check</small></span></button>
+      <button type="button" data-station="1"><span class="st-num">2</span><span class="st-txt"><b>Its mission</b><small>From launch to last signal</small></span></button>
+    </nav>
+
+    <section class="station" data-station="0" aria-labelledby="s1h0">
+      <header class="st-head">
+        <span class="st-of">Station 1 of 2</span>
+        <h2 class="h2" id="s1h0">Inspect the robot</h2>
+        <p class="muted"><b>Your job:</b> tap the five glowing dots on the photo and check off every part of Surveyor 3.</p>
+      </header>
     <div class="explore">
       <figure class="photo" style="margin:0">
         <div class="photo-inner" id="surveyorPhoto"><img src="__IMG_7100__" alt="Surveyor 3 standing on the Moon, photographed by the Apollo 12 crew in 1969. Their lander is visible on the horizon." width="1200" height="865"></div>
@@ -787,6 +834,15 @@ details.nerd summary::before { color: var(--muted); }
       <div class="stat"><span class="label">Pictures sent</span><b>6,326</b><span class="muted">black and white TV</span></div>
     </div>
 
+      <div class="st-nav"><span></span><button class="btn primary" type="button" data-station-go="1">Next station: Its mission →</button></div>
+    </section>
+
+    <section class="station" data-station="1" aria-labelledby="s1h1" hidden>
+      <header class="st-head">
+        <span class="st-of">Station 2 of 2</span>
+        <h2 class="h2" id="s1h1">Its mission</h2>
+        <p class="muted"><b>Your job:</b> follow Surveyor 3 from launch to its last signal. Want the soil measurements? Open nerd mode.</p>
+      </header>
     <div class="card" style="display:grid;gap:18px">
       <h2 class="h2">Mission timeline</h2>
       <div class="timeline">
@@ -808,7 +864,9 @@ details.nerd summary::before { color: var(--muted); }
       </div>
     </details>
 
+      <div class="st-nav"><button class="btn" type="button" data-station-go="0">← Back</button><span></span></div>
     <div class="next"><span class="muted">End of chapter 1</span><button class="btn primary big" type="button" data-go="apollo">Continue to chapter 2: Apollo 12 →</button></div>
+    </section>
   </section>
 
   <!-- =============================================== CHAPTER 2 -->
@@ -817,8 +875,21 @@ details.nerd summary::before { color: var(--muted); }
       <span class="eyebrow">Chapter 2 · November 1969</span>
       <h1>Apollo 12 drops by</h1>
       <p class="lede">Mission goal: land a crewed spacecraft right next to another one. Target: Surveyor 3. Precision landing: GO. Sandblasting the target: not in the flight plan.</p>
+      <p class="chap-meta" data-meta="apollo"></p>
     </div>
 
+    <nav class="stations" id="stations2" aria-label="Stations in this chapter">
+      <button type="button" data-station="0"><span class="st-num">1</span><span class="st-txt"><b>The landing</b><small>Four days in 1969</small></span></button>
+      <button type="button" data-station="1"><span class="st-num">2</span><span class="st-txt"><b>Watch the dust</b><small>Two views of the blast</small></span></button>
+      <button type="button" data-station="2"><span class="st-num">3</span><span class="st-txt"><b>The evidence</b><small>Pits and paint</small></span></button>
+    </nav>
+
+    <section class="station" data-station="0" aria-labelledby="s2h0">
+      <header class="st-head">
+        <span class="st-of">Station 1 of 3</span>
+        <h2 class="h2" id="s2h0">The landing</h2>
+        <p class="muted"><b>Your job:</b> read how Apollo 12 came down right next to Surveyor 3, in four steps.</p>
+      </header>
     <div class="visit">
       <figure class="photo" style="margin:0">
         <img src="__IMG_7121__" alt="Surveyor 3 on the Moon, photographed up close by Alan Bean in 1969, with its scoop arm, camera and solar panel." width="1200" height="961">
@@ -832,6 +903,15 @@ details.nerd summary::before { color: var(--muted); }
       </div>
     </div>
 
+      <div class="st-nav"><span></span><button class="btn primary" type="button" data-station-go="1">Next station: Watch the dust →</button></div>
+    </section>
+
+    <section class="station" data-station="1" aria-labelledby="s2h1" hidden>
+      <header class="st-head">
+        <span class="st-of">Station 2 of 3</span>
+        <h2 class="h2" id="s2h1">Watch the dust</h2>
+        <p class="muted"><b>Your job:</b> press play on both views: once from the side, once through Surveyor's camera.</p>
+      </header>
     <div class="card" style="display:grid;gap:14px">
       <div class="section-title">
         <span class="label">Watch it from the side</span>
@@ -856,6 +936,15 @@ details.nerd summary::before { color: var(--muted); }
       </div>
     </div>
 
+      <div class="st-nav"><button class="btn" type="button" data-station-go="0">← Back</button><button class="btn primary" type="button" data-station-go="2">Next station: The evidence →</button></div>
+    </section>
+
+    <section class="station" data-station="2" aria-labelledby="s2h2" hidden>
+      <header class="st-head">
+        <span class="st-of">Station 3 of 3</span>
+        <h2 class="h2" id="s2h2">The evidence</h2>
+        <p class="muted"><b>Your job:</b> look at what the dust did to Surveyor's metal and paint. These pits are the one real measurement our model is checked against.</p>
+      </header>
     <div class="card pits">
       <canvas id="pitCanvas" width="560" height="560" aria-label="A one-square-centimetre patch with about 103 tiny pits"></canvas>
       <div style="display:grid;gap:12px">
@@ -897,15 +986,18 @@ details.nerd summary::before { color: var(--muted); }
       </div>
     </details>
 
+      <div class="st-nav"><button class="btn" type="button" data-station-go="1">← Back</button><span></span></div>
     <div class="next"><span class="muted">End of chapter 2</span><button class="btn primary big" type="button" data-go="simulation">Continue to chapter 3: The model →</button></div>
+    </section>
   </section>
 
   <!-- =============================================== CHAPTER 3 -->
   <section class="chapter" id="ch-simulation" data-ch="simulation" hidden>
     <div class="ch-head">
-      <span class="eyebrow">Log 03 · the model</span>
+      <span class="eyebrow">Chapter 3 · the model</span>
       <h1>Rebuilding the dust storm</h1>
-      <p class="lede">Flying a lander to the Moon to test this is slightly over our budget. So we throw 10 million virtual dust grains instead and count where they hit. That method is called Monte Carlo, and so are we.</p>
+      <p class="lede">Flying a lander to the Moon to test this is slightly over our budget. So we throw 10 million virtual dust grains instead and count where they land. It works like finding out how often a dart hits the bullseye: throw thousands of darts and count. The method is named Monte Carlo, after the famous casino, because it runs on chance. So are we.</p>
+      <p class="chap-meta" data-meta="simulation"></p>
     </div>
 
     <nav class="stations" id="stations" aria-label="Stations in this chapter">
@@ -971,7 +1063,7 @@ details.nerd summary::before { color: var(--muted); }
       <header class="st-head">
         <span class="st-of">Station 3 of 3</span>
         <h2 class="h2" id="st2h">Why is the range so big?</h2>
-        <p class="muted"><b>Your job:</b> switch options off and watch the safe distance jump. Scientists don't agree on every detail of how dust is blown away, so our model runs every combination.</p>
+        <p class="muted">Researchers still disagree on how exhaust lifts dust and at what angle it flies. Instead of picking one answer, we run 36 versions built from the main competing choices (3 erosion laws × 2 speed models × 6 angles) and show the spread. <b>Your job:</b> switch them off and watch how much the estimate moves.</p>
       </header>
     <div class="card" style="display:grid;gap:16px" id="upCard">
       <div class="up">
@@ -996,13 +1088,15 @@ details.nerd summary::before { color: var(--muted); }
   <!-- =============================================== CHAPTER 4 -->
   <section class="chapter" id="ch-future" data-ch="future" hidden>
     <div class="ch-head">
-      <span class="eyebrow">Log 04 · the future</span>
+      <span class="eyebrow">Chapter 4 · the future</span>
       <h1>How far is far enough?</h1>
       <p class="lede">Moon bases are coming, and so are landers bigger than Apollo's, landing again and again. Flight control needs an answer: where can they touch down without sandblasting everything around them?</p>
+      <p class="muted"><b>There's no single answer.</b> We estimate where the sandblasting falls below a level we picked, using Surveyor 3 as the only real measurement. Treat it as a rule of thumb, not a safety rule.</p>
+      <p class="chap-meta" data-meta="future"></p>
     </div>
 
     <nav class="stations" id="stations4" aria-label="Stations in this chapter">
-      <button type="button" data-station="0"><span class="st-num">1</span><span class="st-txt"><b>Missions</b><small>Land without sandblasting</small></span></button>
+      <button type="button" data-station="0"><span class="st-num">1</span><span class="st-txt"><b>Sandblast map</b><small>Where the dust lands</small></span></button>
       <button type="button" data-station="1"><span class="st-num">2</span><span class="st-txt"><b>Planning tools</b><small>Advisor, pads and berms</small></span></button>
       <button type="button" data-station="2"><span class="st-num">3</span><span class="st-txt"><b>Land it yourself</b><small>Fly the lander</small></span></button>
       <button type="button" data-station="3"><span class="st-num">4</span><span class="st-txt"><b>Why it matters</b><small>Heritage, what we learned</small></span></button>
@@ -1011,16 +1105,10 @@ details.nerd summary::before { color: var(--muted); }
     <section class="station" data-station="0" aria-labelledby="f0h">
       <header class="st-head">
         <span class="st-of">Station 1 of 4</span>
-        <h2 class="h2" id="f0h">Mission control</h2>
-        <p class="muted">Every mission needs a landing site close enough to be useful, but far enough that the dust doesn't sandblast anything.</p>
-        <ol class="howto">
-          <li><b>Pick a mission</b> below.</li>
-          <li><b>Tap the map</b> where the lander should touch down.</li>
-          <li>Press <b>▶ Test landing</b> and watch the dust.</li>
-        </ol>
-        <p class="note">NO-GO? Move the lander and test again. Tests are free; real landings are not.</p>
+        <h2 class="h2" id="f0h">Sandblast map</h2>
+        <p class="muted">Pick a site and a lander, then tap the map where it should touch down. The rings work like the circles around a campfire, where the smoke gets thinner the farther away you sit. Inside the innermost ring, hardware would be sandblasted at least as hard as Surveyor 3 was in 1969. The next rings mark 10 times and 100 times less.</p>
+        <p class="note">The rings are estimates from our model, not safety limits. Press <b>▶ Replay Apollo 12 (1969)</b> to see the Apollo 12 landing on the same map.</p>
       </header>
-    <div class="missions" id="missions"></div>
     <div id="slot-future"></div>
       <div class="st-nav"><span></span><button class="btn primary" type="button" data-station-go="1">Next station: Planning tools →</button></div>
     </section>
@@ -1053,6 +1141,7 @@ details.nerd summary::before { color: var(--muted); }
 
     <section class="panel" aria-label="Mitigation">
       <div class="section-title"><span class="label">Protection</span><h2 class="h2">Pads, berms and craters</h2></div>
+      <p class="muted">A <b>landing pad</b> is a hard, flat surface, like a helipad, so the engine finds no loose dust right under it to blow away. A <b>berm</b> is a ring wall of piled-up soil around the landing spot (50 m out in our model) that catches dust flying low, the way a fence stops a ball rolling along the ground.</p>
       <p class="note" id="mitNote"></p>
       <div class="tbl"><table id="mit"></table></div>
     </section>
@@ -1116,7 +1205,7 @@ details.nerd summary::before { color: var(--muted); }
     </section>
 
     <div class="section-title"><span class="label">Wrap-up</span><h2 class="h2">What we learned</h2></div>
-    <blockquote class="takeaway"><span class="eyebrow">Final report</span><p>The dust problem is real. Nobody thinks about it at first, and that is exactly why it has to be planned before people live up there.</p></blockquote>
+    <blockquote class="takeaway"><span class="eyebrow">Final report</span><p>Engineers have studied this since Apollo 12 brought Surveyor's camera home. What's still open is how it scales: the next landers are far heavier than Apollo's, and the only hard data point we have is one camera from 1969.</p></blockquote>
     <div class="learned" id="learned"></div>
 
     <footer class="foot card">
@@ -1140,61 +1229,8 @@ details.nerd summary::before { color: var(--muted); }
       </div>
     </footer>
       <div class="st-nav"><button class="btn" type="button" data-station-go="2">← Back</button><span></span></div>
-    <div class="next"><span class="muted">End of chapter 4</span><button class="btn primary big" type="button" data-go="log">Continue to the mission log →</button></div>
+    <div class="next"><span class="muted">End of chapter 4</span><button class="btn primary big" type="button" data-go="sources">Continue to the sources →</button></div>
     </section>
-  </section>
-
-  <!-- =============================================== MISSION LOG -->
-  <section class="chapter" id="ch-log" data-ch="log" hidden>
-    <div class="ch-head">
-      <span class="eyebrow">Mission log</span>
-      <h1>Behind the scenes</h1>
-      <p class="lede">Real science is mostly fixing things that didn't work. This is our log from one week of building, anomalies included.</p>
-    </div>
-
-    <div class="logbook">
-      <article class="entry">
-        <div class="stamp">06 NOV<span>Day 1</span></div>
-        <div class="body"><span class="status ok">NOMINAL</span><h3>Mission start</h3>
-          <p>The idea: tell the story of Surveyor 3 and work out how far future landers must stay away from things. First Python model in one evening: engine plume, wind along the ground, erosion, flying grains, tiny craters.</p></div>
-      </article>
-      <article class="entry">
-        <div class="stamp">06 NOV<span>Day 1</span></div>
-        <div class="body"><span class="status warn">ANOMALY</span><h3>The measurement that wasn't</h3>
-          <p>Our task sheet said Surveyor 3 had 1.4–3 pits per cm². We traced the number back: that was a model result, not a measurement. The real count on the returned metal is about 103 per cm². Lesson: always find where a number was actually measured.</p></div>
-      </article>
-      <article class="entry">
-        <div class="stamp">11 NOV<span>Day 6</span></div>
-        <div class="body"><span class="status ok">NOMINAL</span><h3>Monte Carlo upgrade</h3>
-          <p>The model now throws 10 million virtual grains for each of 36 versions: 3 erosion laws × 2 speed models × 6 ejection angles measured from Apollo landing films.</p></div>
-      </article>
-      <article class="entry wide">
-        <div class="stamp">11 NOV<span>Day 6</span></div>
-        <div class="body"><span class="status warn">ANOMALY</span><h3>A formula that doesn't match its own figure</h3>
-          <p>In a paper by scientists at NASA's Kennedy Space Center (Lane &amp; Metzger 2015), Equation 7 is supposed to describe the grain speeds plotted in Figure 5. It doesn't. Even with the best possible scaling it misses the plotted curves by 18% on average and by up to 760%. So we traced 133 points off the figure and fitted our own curve: 1.2% median error. We use the figure, not the printed equation.</p>
-          <figure class="sketch"><svg id="sketchEq7" viewBox="0 0 560 300" role="img" aria-label="Sketch: the curve in Figure 5 stays flat and then falls with height, while Equation 7 as printed rises with height."></svg>
-            <figcaption>Our notebook sketch. Not to scale.</figcaption></figure></div>
-      </article>
-      <article class="entry">
-        <div class="stamp">12 NOV<span>Day 7</span></div>
-        <div class="body"><span class="status fixed">RESOLVED</span><h3>Craters three times too small</h3>
-          <p>Our model's pits came out about three times smaller than the real ones (around 80 µm). The crater formula still had a placeholder constant, K<sub>D</sub> = 1. Calibrated against Surveyor 3, it has to be at least about 100. After that, 18 of 36 model versions match the real pit counts. We keep those and drop the rest.</p></div>
-      </article>
-      <article class="entry wide">
-        <div class="stamp">13 NOV<span>Day 8</span></div>
-        <div class="body"><span class="status fixed">RESOLVED</span><h3>155, 157 or 180 metres?</h3>
-          <p>NASA pages say 155 m, others "about 180 m". So we did the maths ourselves with the LRO-based coordinates from NASA's NSSDCA catalogue: Surveyor 3 is 118 m east and 103 m south of the Apollo 12 lander. Pythagoras, on the Moon.</p>
-          <figure class="sketch"><svg id="sketchPyth" viewBox="0 0 560 280" role="img" aria-label="Sketch: right triangle with 118 m east and 103 m south, hypotenuse 157 m from the Apollo 12 lander to Surveyor 3."></svg>
-            <figcaption>1° on the Moon ≈ 30.3 km. Our model uses 155 m: confirmed.</figcaption></figure></div>
-      </article>
-      <article class="entry">
-        <div class="stamp">13 NOV<span>Day 8</span></div>
-        <div class="body"><span class="status go">GO</span><h3>Go for launch</h3>
-          <p>Hackathon tomorrow. Every model version and every landing-pad case is computed. What we take away: the dust problem is real, and nobody thinks about it at first. That's exactly why we did.</p></div>
-      </article>
-    </div>
-
-    <div class="next"><span class="muted">End of the mission log</span><button class="btn primary big" type="button" data-go="sources">Continue to the sources →</button></div>
   </section>
 
   <!-- =============================================== SOURCES -->
@@ -1204,9 +1240,9 @@ details.nerd summary::before { color: var(--muted); }
       <h1>Sources and citations</h1>
       <p class="lede">Everything in this app traces back to these documents. Most of them are free to read online. For web pages we note when we last opened them; PDFs and printed papers don't change.</p>
     </div>
-    <section class="refgroup"><h2 class="h2">Surveyor 3 and the returned hardware</h2><ol class="refs"><li><span>Immer, C., Metzger, P., Hintze, P. E., Nick, A., Horan, R. (2011). Apollo 12 Lunar Module exhaust plume impingement on Lunar Surveyor III. <i>Icarus</i> 211, 1089–1102.</span><span class="ref-links"><a href="https://www.sciencedirect.com/science/article/abs/pii/S001910351000432X" target="_blank" rel="noopener">Journal ↗</a> · <a href="https://ui.adsabs.harvard.edu/abs/2011Icar..211.1089I" target="_blank" rel="noopener">ADS abstract ↗</a> · <span class="ref-kind">web page, accessed 13 Nov 2026</span></span></li><li><span>Cour-Palais, B. G., et al. (1972). Results of examination of the returned Surveyor 3 samples for particulate impacts. NASA SP-284, part E.</span><span class="ref-links"><a href="https://www.lpi.usra.edu/lunar/strategies/Cour-PalaisEtAl_NASA-SP-284E_Surveyor_3_Particulate_Impacts.pdf" target="_blank" rel="noopener">PDF ↗</a> · <span class="ref-kind">PDF</span></span></li><li><span>Proceedings of the Second Lunar Science Conference (1971), p. 2767: pits on the polished aluminium tube.</span><span class="ref-links"><a href="https://adsabs.harvard.edu/full/1971LPSC....2.2767C" target="_blank" rel="noopener">ADS full text ↗</a> · <span class="ref-kind">web page, accessed 13 Nov 2026</span></span></li><li><span>Max-Planck-Institut für Kernphysik analysis of a Surveyor 3 screw (1972), NASA Technical Reports Server 19720019104.</span><span class="ref-links"><a href="https://ntrs.nasa.gov/citations/19720019104" target="_blank" rel="noopener">NTRS ↗</a> · <span class="ref-kind">web page, accessed 13 Nov 2026</span></span></li><li><span>NASA Science: Surveyor 3 mission page.</span><span class="ref-links"><a href="https://science.nasa.gov/mission/surveyor-3/" target="_blank" rel="noopener">NASA ↗</a> · <span class="ref-kind">web page, accessed 13 Nov 2026</span></span></li><li><span>NASA NSSDCA: Surveyor 3 (1967-035A).</span><span class="ref-links"><a href="https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1967-035A" target="_blank" rel="noopener">NSSDCA ↗</a> · <span class="ref-kind">web page, accessed 13 Nov 2026</span></span></li><li><span>Metzger, P. T. (2020). Dust transport and its effects due to landing spacecraft. <i>Lunar Dust 2020</i>, LPI Contribution No. 2141, abstract 5040 (source of the electron microscope images, credit NASA).</span><span class="ref-links"><a href="https://www.hou.usra.edu/meetings/lunardust2020/pdf/5040.pdf" target="_blank" rel="noopener">PDF ↗</a> · <span class="ref-kind">PDF</span></span></li></ol></section>
+    <section class="refgroup"><h2 class="h2">Surveyor 3 and the returned hardware</h2><ol class="refs"><li><span>Immer, C., Metzger, P., Hintze, P. E., Nick, A., Horan, R. (2011). Apollo 12 Lunar Module exhaust plume impingement on Lunar Surveyor III. <i>Icarus</i> 211, 1089–1102.</span><span class="ref-links"><a href="https://doi.org/10.1016/j.icarus.2010.11.013" target="_blank" rel="noopener">Journal (DOI) ↗</a> · <a href="https://ui.adsabs.harvard.edu/abs/2011Icar..211.1089I" target="_blank" rel="noopener">ADS abstract ↗</a> · <span class="ref-kind">web page, accessed 13 Nov 2026</span></span></li><li><span>Cour-Palais, B. G., et al. (1972). Results of examination of the returned Surveyor 3 samples for particulate impacts. NASA SP-284, part E.</span><span class="ref-links"><a href="https://www.lpi.usra.edu/lunar/strategies/Cour-PalaisEtAl_NASA-SP-284E_Surveyor_3_Particulate_Impacts.pdf" target="_blank" rel="noopener">PDF ↗</a> · <span class="ref-kind">PDF</span></span></li><li><span>Proceedings of the Second Lunar Science Conference (1971), p. 2767: pits on the polished aluminium tube.</span><span class="ref-links"><a href="https://adsabs.harvard.edu/full/1971LPSC....2.2767C" target="_blank" rel="noopener">ADS full text ↗</a> · <span class="ref-kind">web page, accessed 13 Nov 2026</span></span></li><li><span>Max-Planck-Institut für Kernphysik analysis of a Surveyor 3 screw (1972), NASA Technical Reports Server 19720019104.</span><span class="ref-links"><a href="https://ntrs.nasa.gov/citations/19720019104" target="_blank" rel="noopener">NTRS ↗</a> · <span class="ref-kind">web page, accessed 13 Nov 2026</span></span></li><li><span>NASA Science: Surveyor 3 mission page.</span><span class="ref-links"><a href="https://science.nasa.gov/mission/surveyor-3/" target="_blank" rel="noopener">NASA ↗</a> · <span class="ref-kind">web page, accessed 13 Nov 2026</span></span></li><li><span>NASA NSSDCA: Surveyor 3 (1967-035A).</span><span class="ref-links"><a href="https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1967-035A" target="_blank" rel="noopener">NSSDCA ↗</a> · <span class="ref-kind">web page, accessed 13 Nov 2026</span></span></li><li><span>Metzger, P. T. (2020). Dust transport and its effects due to landing spacecraft. <i>Lunar Dust 2020</i>, LPI Contribution No. 2141, abstract 5040 (source of the electron microscope images, credit NASA).</span><span class="ref-links"><a href="https://www.hou.usra.edu/meetings/lunardust2020/pdf/5040.pdf" target="_blank" rel="noopener">PDF ↗</a> · <span class="ref-kind">PDF</span></span></li></ol></section>
     <section class="refgroup"><h2 class="h2">Apollo 12, landing films and site coordinates</h2><ol class="refs"><li><span>NASA NSSDCA: Apollo 12 Lunar Module / ALSEP (1969-099C).</span><span class="ref-links"><a href="https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1969-099C" target="_blank" rel="noopener">NSSDCA ↗</a> · <span class="ref-kind">web page, accessed 13 Nov 2026</span></span></li><li><span>NASA NSSDCA: Apollo landing sites and ALSEP and LRRR locations (LRO-based, DE421 frame).</span><span class="ref-links"><a href="https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_sites.html" target="_blank" rel="noopener">NSSDCA ↗</a> · <span class="ref-kind">web page, accessed 13 Nov 2026</span></span></li><li><span>Immer, C., Lane, J., Metzger, P., Clements, S. Apollo video photogrammetry estimation of plume impingement effects. NASA NTRS 20130012063.</span><span class="ref-links"><a href="https://ntrs.nasa.gov/api/citations/20130012063/downloads/20130012063.pdf" target="_blank" rel="noopener">PDF ↗</a> · <span class="ref-kind">PDF</span></span></li><li><span>Immer, C., Metzger, P., et al. Photogrammetry of the Apollo landing videos: dust ejection angles (Table 1). arXiv:2104.07669.</span><span class="ref-links"><a href="https://arxiv.org/abs/2104.07669" target="_blank" rel="noopener">arXiv ↗</a> · <span class="ref-kind">web page, accessed 13 Nov 2026</span></span></li></ol></section>
-    <section class="refgroup"><h2 class="h2">Physics of plume erosion (our model)</h2><ol class="refs"><li><span>Lane, J. E., Metzger, P. T. (2015). Estimation of Apollo lunar dust transport using optical extinction measurements. <i>Acta Geophysica</i> 63, 568–599.</span><span class="ref-links"><a href="https://link.springer.com/article/10.1515/acgeo-2015-0005" target="_blank" rel="noopener">Journal ↗</a> · <a href="https://arxiv.org/abs/1503.00154" target="_blank" rel="noopener">arXiv ↗</a> · <a href="https://ntrs.nasa.gov/api/citations/20150000173/downloads/20150000173.pdf" target="_blank" rel="noopener">NTRS PDF ↗</a> · <span class="ref-kind">web page, accessed 13 Nov 2026</span></span></li><li><span>Metzger, P. T., Lane, J. E., et al. (2008). Modification of Roberts' theory for rocket exhaust plumes eroding lunar soil. Earth &amp; Space 2008.</span><span class="ref-links"><a href="https://arxiv.org/abs/2104.05198" target="_blank" rel="noopener">arXiv ↗</a> · <span class="ref-kind">web page, accessed 13 Nov 2026</span></span></li><li><span>Metzger, P. T. (2024). Energy-flux erosion law and the 11–26 t estimate for Apollo 12 (used for the energy-flux branch).</span><span class="ref-links"><span class="ref-kind">reference as used in our model code</span></span></li><li><span>NASA TM-20240003496, Fig. 20: particle size versus speed for a single-engine plume.</span><span class="ref-links"><a href="https://ntrs.nasa.gov/citations/20240003496" target="_blank" rel="noopener">NTRS ↗</a> · <span class="ref-kind">web page, accessed 13 Nov 2026</span></span></li><li><span>Lane, J. E., et al. (2023). Further analysis on the mystery of the Surveyor III dust deposits. arXiv:2306.01087.</span><span class="ref-links"><a href="https://arxiv.org/abs/2306.01087" target="_blank" rel="noopener">arXiv ↗</a> · <span class="ref-kind">web page, accessed 13 Nov 2026</span></span></li><li><span>Roberts, L. (1963). The action of a hypersonic jet on a dust layer. IAS Paper 63-50.</span><span class="ref-links"><span class="ref-kind">print</span></span></li><li><span>Sheldon, G. L., Kanhere, A. (1972). An investigation of impingement erosion using single particles. <i>Wear</i> 21.</span><span class="ref-links"><span class="ref-kind">print</span></span></li><li><span>Shao, Y., Lu, H. (2000). A simple expression for wind erosion threshold friction velocity. <i>Journal of Geophysical Research</i> 105.</span><span class="ref-links"><span class="ref-kind">print</span></span></li><li><span>Carrier, W. D. (2003). Particle size distribution of lunar soil. <i>Journal of Geotechnical and Geoenvironmental Engineering</i> 129.</span><span class="ref-links"><span class="ref-kind">print</span></span></li><li><span>Brownlee, D. E., et al. (1972). Primary and secondary micrometeoroid impact rate on the lunar surface: a direct measurement. In NASA SP-284.</span><span class="ref-links"><span class="ref-kind">print</span></span></li></ol></section>
+    <section class="refgroup"><h2 class="h2">Physics of plume erosion (our model)</h2><ol class="refs"><li><span>Lane, J. E., Metzger, P. T. (2015). Estimation of Apollo lunar dust transport using optical extinction measurements. <i>Acta Geophysica</i> 63, 568–599.</span><span class="ref-links"><a href="https://link.springer.com/article/10.1515/acgeo-2015-0005" target="_blank" rel="noopener">Journal ↗</a> · <a href="https://arxiv.org/abs/1503.00154" target="_blank" rel="noopener">arXiv ↗</a> · <a href="https://ntrs.nasa.gov/api/citations/20150000173/downloads/20150000173.pdf" target="_blank" rel="noopener">NTRS PDF ↗</a> · <span class="ref-kind">web page, accessed 13 Nov 2026</span></span></li><li><span>Metzger, P. T., Lane, J. E., et al. (2008). Modification of Roberts' theory for rocket exhaust plumes eroding lunar soil. Earth &amp; Space 2008.</span><span class="ref-links"><a href="https://arxiv.org/abs/2104.05198" target="_blank" rel="noopener">arXiv ↗</a> · <span class="ref-kind">web page, accessed 13 Nov 2026</span></span></li><li><span>Metzger, P. T. (2024). Erosion rate of lunar soil under a landing rocket, part 1: identifying the rate-limiting physics; part 2: benchmarking and predictions. <i>Icarus</i> 417, 116136 and 116135 (energy-flux erosion law and the Apollo 12 soil mass used for our energy-flux branch).</span><span class="ref-links"><a href="https://arxiv.org/abs/2403.18583" target="_blank" rel="noopener">Part 1, arXiv ↗</a> · <a href="https://arxiv.org/abs/2403.18584" target="_blank" rel="noopener">Part 2, arXiv ↗</a> · <a href="https://doi.org/10.1016/j.icarus.2024.116136" target="_blank" rel="noopener">Journal (DOI) ↗</a> · <span class="ref-kind">web pages, accessed 14 Nov 2026</span></span></li><li><span>NASA TM-20240003496, Fig. 20: particle size versus speed for a single-engine plume.</span><span class="ref-links"><a href="https://ntrs.nasa.gov/citations/20240003496" target="_blank" rel="noopener">NTRS ↗</a> · <span class="ref-kind">web page, accessed 13 Nov 2026</span></span></li><li><span>Lane, J. E., et al. (2023). Further analysis on the mystery of the Surveyor III dust deposits. arXiv:2306.01087.</span><span class="ref-links"><a href="https://arxiv.org/abs/2306.01087" target="_blank" rel="noopener">arXiv ↗</a> · <span class="ref-kind">web page, accessed 13 Nov 2026</span></span></li><li><span>Roberts, L. (1963). The action of a hypersonic jet on a dust layer. IAS Paper 63-50. Not available online; the theory is summarised in Metzger et al. (2008) above.</span><span class="ref-links"><span class="ref-kind">print</span></span></li><li><span>Sheldon, G. L., Kanhere, A. (1972). An investigation of impingement erosion using single particles. <i>Wear</i> 21(1), 195–209 (crater volume formula in our model).</span><span class="ref-links"><a href="https://doi.org/10.1016/0043-1648(72)90257-8" target="_blank" rel="noopener">Journal (DOI) ↗</a> · <span class="ref-kind">journal article, not open access</span></span></li><li><span>Shao, Y., Lu, H. (2000). A simple expression for wind erosion threshold friction velocity. <i>Journal of Geophysical Research</i> 105(D17), 22437–22443.</span><span class="ref-links"><a href="https://doi.org/10.1029/2000JD900304" target="_blank" rel="noopener">Journal (DOI) ↗</a> · <span class="ref-kind">journal article</span></span></li><li><span>Carrier, W. D. (2003). Particle size distribution of lunar soil. <i>Journal of Geotechnical and Geoenvironmental Engineering</i> 129(10), 956–959.</span><span class="ref-links"><a href="https://doi.org/10.1061/(ASCE)1090-0241(2003)129:10(956)" target="_blank" rel="noopener">Journal (DOI) ↗</a> · <span class="ref-kind">journal article</span></span></li><li><span>Brownlee, D. E., et al. (1972). Primary and secondary micrometeoroid impact rate on the lunar surface: a direct measurement. In NASA SP-284.</span><span class="ref-links"><a href="https://ntrs.nasa.gov/citations/19720019099" target="_blank" rel="noopener">NTRS ↗</a> · <a href="https://ntrs.nasa.gov/api/citations/19720019081/downloads/19720019081.pdf" target="_blank" rel="noopener">NASA SP-284 PDF ↗</a> · <span class="ref-kind">PDF</span></span></li></ol></section>
     <section class="refgroup"><h2 class="h2">Images, maps and heritage</h2><ol class="refs"><li><span>Apollo 12 photos AS12-48-7134 (NASA), AS12-48-7100 and AS12-48-7121 (NASA NSSDC photo catalogue).</span><span class="ref-links"><a href="https://www.nasa.gov/image-detail/as12-48-7134_1280/" target="_blank" rel="noopener">7134 ↗</a> · <a href="https://nssdc.gsfc.nasa.gov/imgcat/html/object_page/a12_h_48_7100.html" target="_blank" rel="noopener">7100 ↗</a> · <a href="https://nssdc.gsfc.nasa.gov/imgcat/html/object_page/a12_h_48_7121.html" target="_blank" rel="noopener">7121 ↗</a> · <span class="ref-kind">web pages, accessed 13 Nov 2026</span></span></li><li><span>NASA's Scientific Visualization Studio: CGI Moon Kit (LRO colour map used on the globe).</span><span class="ref-links"><a href="https://svs.gsfc.nasa.gov/4720" target="_blank" rel="noopener">SVS ↗</a> · <span class="ref-kind">web page, accessed 13 Nov 2026</span></span></li><li><span>Heritage gallery: NASA Science mission pages (Viking 1, Mars Pathfinder, Spirit and Opportunity, InSight, Ingenuity, Pioneer 10, Dawn, NEAR Shoemaker, Kepler) and NSSDCA entries (Apollo lunar module, Lunar Roving Vehicle); links on each gallery card.</span><span class="ref-links"><span class="ref-kind">web pages, accessed 13 Nov 2026</span></span></li></ol></section>
     <section class="refgroup"><h2 class="h2">Software</h2><ol class="refs"><li><span>three.js r128 (MIT licence) for the 3D Moon and landing scenes; Python, NumPy, SciPy and Numba for the simulation.</span><span class="ref-links"><a href="https://threejs.org/" target="_blank" rel="noopener">three.js ↗</a> · <span class="ref-kind">software</span></span></li></ol></section>
     <div class="next"><span class="muted">End of the sources</span><button class="btn primary big" type="button" data-go="intro">Back to the start ↑</button></div>
@@ -1295,8 +1331,8 @@ details.nerd summary::before { color: var(--muted); }
         <button type="button" id="bannerClose" aria-label="Close">×</button>
       </div>
       <div class="below">
-        <section class="panel" aria-label="Safe distances">
-          <h3 style="font-size:19px">Safe distances for this landing</h3>
+        <section class="panel" aria-label="Estimated distances">
+          <h3 style="font-size:19px">Estimated distances for this landing</h3>
           <div class="rings" id="rings"></div>
           <details class="more">
             <summary>What gets hit, piece by piece</summary>

@@ -40,7 +40,6 @@ import numpy as np
 import pit_spectrum as PS
 import psi_study as S
 
-HERE = os.path.dirname(os.path.abspath(__file__))
 COUNT_THRESHOLDS_UM = (20.0, 50.0)              # assumed lower limits of the pit count
 TARGET_MEAN_UM = math.sqrt(83.7 * 74.5)        # 79.0 um, coupons 2050/2051
 COUPONS_PER_CM2 = 103.0
@@ -129,8 +128,14 @@ def main():
         r = results[f"count_min_{t:g}um"]
         print_threshold(t, r["branches"], r["summary"])
 
-    S.write_json(os.path.join(HERE, "pit_calibration_results.json"),
-                 {"quick": a.quick, "pit_sizes_um": PS.PIT_SIZES_UM, "by_threshold": results})
+    S.write_json(
+        "pit_calibration_results.json",
+        {
+            "quick": a.quick,
+            "pit_sizes_um": PS.PIT_SIZES_UM,
+            "by_threshold": results,
+        },
+    )
 
     by_threshold = {k: sorted(r["branch"] for r in v["branches"] if r["plausible"])
                     for k, v in results.items()}

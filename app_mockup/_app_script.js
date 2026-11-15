@@ -2,16 +2,13 @@
 /* =====================================================================
    APP SHELL: chapters, progress, badges
    ===================================================================== */
-const CHAPTERS = ["surveyor", "apollo", "simulation", "future", "log", "sources"];
+const CHAPTERS = ["surveyor", "apollo", "simulation", "future", "sources"];
 const BADGES = [
   { id: "explorer", ch: "surveyor", name: "Surveyor expert", desc: "Explored all 5 parts of Surveyor 3" },
   { id: "witness", ch: "apollo", name: "Eyewitness 1969", desc: "Watched Apollo 12 sandblast Surveyor 3" },
   { id: "physicist", ch: "simulation", name: "Dust physicist", desc: "Went through all 4 model steps" },
   { id: "pilot", ch: "future", name: "Pilot", desc: "Made a soft touchdown" },
   { id: "careful", ch: "future", name: "Careful pilot", desc: "Soft touchdown, Surveyor below 10% of 1969" },
-  { id: "guardian", ch: "future", name: "Heritage guardian", desc: "Completed the Apollo 11 mission" },
-  { id: "builder", ch: "future", name: "Base builder", desc: "Completed the cargo mission" },
-  { id: "master", ch: "future", name: "Mission master", desc: "Got 3 stars on a mission" },
   { id: "scout", ch: "future", name: "Heritage scout", desc: "Explored heritage on the Moon, on Mars and in deep space" },
 ];
 const store = {
@@ -74,18 +71,19 @@ function showChapter(ch) {
   document.querySelectorAll(".chapnav a").forEach((a) => a.setAttribute("aria-current", a.dataset.ch === ch ? "page" : "false"));
   if (currentCh && currentCh !== ch) window.scrollTo(0, 0);
   currentCh = ch;
-  if (ch === "simulation") { showStation(ST.simulation.i, false, "simulation"); startStepLoop(); }
-  if (ch === "future") showStation(ST.future.i, false, "future");
+  if (ST[ch]) showStation(ST[ch].i, false, ch);
+  if (ch === "simulation") startStepLoop();
   if (ch !== "future") stopGame(true);
   if (ch === "apollo") drawDustScene(0);
 }
 window.addEventListener("hashchange", () => showChapter(location.hash.slice(1)));
 
-// Stations (chapters 3 and 4): one tool on screen at a time.
-const ST = { simulation: { i: 0, seen: new Set() }, future: { i: 0, seen: new Set() } };
+// Stations (every chapter): one tool on screen at a time.
+const ST = { surveyor: { i: 0, seen: new Set() }, apollo: { i: 0, seen: new Set() },
+             simulation: { i: 0, seen: new Set() }, future: { i: 0, seen: new Set() } };
 let station = 0;   // chapter 3's station, read by its animations
 function showStation(i, scroll, ch) {
-  ch = ch || (currentCh === "future" ? "future" : "simulation");
+  ch = ch || (ST[currentCh] ? currentCh : "simulation");
   const root = document.getElementById("ch-" + ch), st = ST[ch];
   st.i = i; st.seen.add(i);
   root.querySelectorAll(".station").forEach((s) => { s.hidden = +s.dataset.station !== i; });
@@ -99,13 +97,15 @@ function showStation(i, scroll, ch) {
     if (i === 0) startStepLoop();
     if (i === 1 && typeof mcDraw === "function") { mcDraw(); mcChart(); }
     if (i === 2 && typeof renderUP === "function") renderUP();
-  } else {
+  } else if (ch === "apollo") {
+    if (i === 1 && typeof refreshApollo === "function") requestAnimationFrame(refreshApollo);
+  } else if (ch === "future") {
     if (i !== 2) stopGame(true);
     if (i === 0 && typeof resize === "function") { resize(); render(); }   // map was hidden: size it now
   }
   if (scroll) root.querySelector(".stations").scrollIntoView({ behavior: "smooth", block: "start" });
 }
-// Jump to the dust map (chapter 4, station 1) from anywhere in chapter 4
+// Jump to the sandblast map (chapter 4, station 1) from anywhere in chapter 4
 function showMap() {
   showStation(0, false, "future");
   requestAnimationFrame(() => document.getElementById("mapbox").scrollIntoView({ behavior: "smooth", block: "center" }));
@@ -133,7 +133,7 @@ const PARTS = [
     f: "The marks from those bounces showed engineers how the soil squashes." },
   { x: 40.7, y: 60.7, t: "Electronics boxes",
     b: "These boxes held the electronics. Their mirror-like tops reflected sunlight so the electronics wouldn't overheat during the long lunar day.",
-    f: "In sunlight the Moon's surface gets hotter than boiling water. At night it is colder than −150 °C." },
+    f: "In sunlight the Moon's surface gets hotter than boiling water. At night it is colder than -150 °C." },
 ];
 const seenParts = new Set();
 const photoEl = document.getElementById("surveyorPhoto");
@@ -273,25 +273,25 @@ document.getElementById("dustPlay").onclick = () => {
    ===================================================================== */
 const STEPS = [
   { t: "Blast", h: "1 · The blast",
-    b: "The engine's exhaust hits the ground at about 3 km/s and spreads out sideways, like a very strong wind. It drags the loose top layer of dust along and throws it up.",
+    b: "The engine shoots gas straight down at about 3 km per second, nearly nine times the speed of sound on Earth. At the ground it spreads out sideways, like a leaf blower pointed at a sandy floor, and sweeps the loose top layer of dust along.",
     n: `<p>The model computes the wind along the ground (the wall shear stress) from the gas speed and its temperature-dependent viscosity:</p>
         <span class="formula">τ = μ(T) · ∂v<sub>r</sub>/∂z</span>
         <p>Three erosion laws turn that into kilograms of dust per second, because scientists still disagree which is right:</p>
         <ul><li>Shear scaling: <code>ṁ = 0.0222 · τ^2.52</code> (Lane &amp; Metzger 2015)</li><li>Roberts' excess-shear theory</li><li>Energy flux (Metzger 2024)</li></ul>` },
   { t: "Fly", h: "2 · The flight",
-    b: "Each grain flies off almost flat, only a few degrees up. There is no air on the Moon to slow it, so it keeps going until gravity brings it down. Small grains are the fastest, up to about 2 km/s.",
+    b: "Each grain leaves almost flat, only a few degrees above the ground. On Earth, air would slow it down, the push you feel on your hand out of a car window. The Moon has no air, so the grain keeps its speed until gravity, only a sixth of Earth's, pulls it down. The smallest grains are the fastest: up to about 2 km per second, faster than a rifle bullet.",
     n: `<p>Every grain flies on a ballistic path in lunar gravity, with a small correction because the Moon is round:</p>
-        <span class="formula">x = v·cosθ·t,  z = v·sinθ·t − ½·g·t² + x²/(2R)</span>
-        <p><code>g = 1.62 m/s²</code>, <code>R = 1737 km</code>. Launch angles come from six Apollo landing films (1.4° to 8.1°, ±0.5°). Launch speeds come from two models: a drag calculation and a fit to Lane &amp; Metzger's Fig. 5. That is 10 million grains for every combination.</p>` },
+        <span class="formula">x = v·cosθ·t,  z = v·sinθ·t - ½·g·t² + x²/(2R)</span>
+        <p><code>g = 1.62 m/s²</code>, <code>R = 1737 km</code>. Launch angles come from six Apollo landing films (1.4° to 8.1°, ±0.5°). Launch speeds come from two models: a drag calculation and a fit to Lane &amp; Metzger's Fig. 5. That is 10 million grains for each of the 36 versions.</p>` },
   { t: "Hit", h: "3 · The hit",
-    b: "When a grain hits metal it punches a tiny crater. Faster and bigger grains make bigger pits. That is what scientists saw on Surveyor 3's parts.",
+    b: "When a grain hits metal it punches a tiny crater, like hail denting a car roof, only much smaller: each pit is about as wide as a hair. Faster and bigger grains make bigger pits. In the formula we use, a grain twice as fast digs a pit with eight times the volume. These are the pits scientists found on Surveyor 3's parts.",
     n: `<p>Crater volume from Sheldon &amp; Kanhere (1972):</p>
-        <span class="formula">V = K<sub>D</sub> · v³ · D³ · ρ<sup>1.5</sup> · H<sub>V</sub><sup>−1.5</sup></span>
+        <span class="formula">V = K<sub>D</sub> · v³ · D³ · ρ<sup>1.5</sup> · H<sub>V</sub><sup>-1.5</sup></span>
         <p><code>ρ = 3100 kg/m³</code> (grain), <code>H_V = 1.05 GPa</code> (aluminium). The constant <code>K_D</code> was a placeholder (1). Comparing with Surveyor 3's real pits showed it must be at least about 100; the exact value depends on how the 2011 study counted small pits.</p>` },
   { t: "Check", h: "4 · The check",
-    b: "We tested every version of the model against the real pits on Surveyor 3. Only the versions that got the pit count right stay in. The map below uses just those.",
+    b: "Our model comes in 36 versions, and nobody knows for sure which is right. So we test each one against the only real evidence: the pits on Surveyor 3. It's like checking a weather model against yesterday's weather before trusting it for tomorrow. The 18 versions that get the pit count right stay in; the map uses only those.",
     n: `<p>Every result is scaled to the one real measurement:</p>
-        <span class="formula">exposure(d) = model(d) / model(Surveyor 3) × 103 pits/cm²</span>
+        <span class="formula">exposure(d) = model(d) / model(Surveyor 3) x 103 pits/cm²</span>
         <p>A model variant is kept if, after calibrating the crater size, its predicted number of pits ≥ 20 µm at Surveyor 3 lies between about 34/cm² and 4000/cm² (the coupon average and the tube's worst spots).</p>` },
 ];
 const seenSteps = new Set();
@@ -582,6 +582,7 @@ function evaluate(m) {
   return { rows, dDest, walkOk, eff, stars, maxReq, used, mit };
 }
 function renderMissions() {
+  if (!document.getElementById("missions")) return;   // mission list removed from the page
   document.getElementById("missions").innerHTML = MISSIONS.map((m, i) => {
     const best = progress.stars[m.id] || 0, l = D.landers.find((x) => x.thrust_N === m.thrust), on = activeMission === m;
     return `<div class="mission" aria-current="${on}">
@@ -776,7 +777,7 @@ function showResult(m) {
     : !e.walkOk ? `Everything is safe, but ${dest.name} is ${fmtD(e.dDest)} away. Land closer for more stars.`
     : !e.eff ? "Safe and reachable. Land a little closer to the safety line for the third star."
     : "Textbook landing site. Flight control is happy.";
-  const rows = e.rows.map((r) => `<li class="${r.ok ? "ok" : "bad"}">${r.o.name}: ${fmtD(r.d)} away, ${r.ok ? "safe from" : "needs at least"} ${isFinite(r.req) ? fmtD(r.req) : "10 km"}</li>`);
+  const rows = e.rows.map((r) => `<li class="${r.ok ? "ok" : "bad"}">${r.o.name}: ${fmtD(r.d)} away, ${r.ok ? "beyond the estimated" : "needs at least"} ${isFinite(r.req) ? fmtD(r.req) : "10 km"}</li>`);
   rows.push(`<li class="${e.walkOk ? "ok" : "bad"}">${m.who} to ${dest.name}: ${fmtD(e.dDest)} (max ${fmtD(m.walk)})</li>`);
   for (const u of e.used) rows.push(`<li class="${u.on ? "ok" : "bad"}">${itemName(u.it)}: ${u.on ? "the lander touched down on it" : (u.it.kind === "berm" ? "the lander was not inside it, no effect" : "the lander missed it, no effect")}</li>`);
   rows.push(`<li class="${e.stars === 3 ? "ok" : ""}">Bonus: no more than 25% farther than needed</li>`);
@@ -894,7 +895,7 @@ function guideSteps() {
   const mis = activeMission, s = [
     { t: "Choose the landing spot", d: "Tap the map where the lander should touch down. You can tap again as often as you like.", run: GS.tap },
     { t: "Move the map", d: "Press and drag to move the map around.", run: GS.pan },
-    { t: "Zoom in and out", d: "Scroll the mouse wheel, or use the + and − buttons. On a phone: pinch with two fingers.", run: GS.zoom },
+    { t: "Zoom in and out", d: "Scroll the mouse wheel, or use the + and - buttons. On a phone: pinch with two fingers.", run: GS.zoom },
   ];
   if (mis && mis.budget) s.push({ t: "Build a pad or a berm", d: "Drag a landing pad or a ring berm onto the map, or tap it to drop it under your lander. It only helps if the lander touches down on it.", run: GS.build });
   s.push(mis ? { t: "Test your plan", d: "Press ▶ Test landing and watch the dust. NO-GO? Move the lander or build something, then test again.", run: GS.test }
@@ -946,16 +947,49 @@ function renderLearned() {
   const M = D.mitigation, p0 = M && M.practical_distance["11.6 kN | no mitigation"], p30 = M && M.practical_distance["11.6 kN | pad, 30 m radius"];
   const cards = [
     ["Dust flies flat and far", `Grains leave at only a few degrees and keep going. For an Apollo-size lander, hardware closer than about ${fr(a.med)} gets more than 10% of the sandblasting Surveyor 3 got.`],
-    ["Size matters, but not simply", `A small lander (${small.name.split(" (")[0]}) needs about ${fr(s.med)}${b ? `, a 44 kN cargo lander about ${fr(b.med)}` : ""}. Bigger engines throw more dust, but not proportionally farther.`],
-    ["Pads and berms help a lot", p0 && p30 ? `In the model, a 30 m landing pad cuts the safe distance for an Apollo-size lander from ${fr(p0.median)} to ${fr(p30.median)}. That's a best case: pad edges and berms also erode in reality.` : "A landing pad stops the blast from digging up dust right under the engine. Pad results are still being computed."],
-    ["Honest uncertainty", `Different model versions disagree: for an Apollo-size lander the safe distance ranges from ${fr(a.lo)} to ${fr(a.hi)}. One measurement on Surveyor 3 can't pin everything down, so we show the range.`],
+    ["Size matters, but not simply", `A small lander (${small.name.split(" (")[0]}) needs about ${fr(s.med)}${b ? `, a 44 kN cargo lander about ${fr(b.med)}` : ""}. Bigger engines blow more dust, but the distance does not simply grow with engine size.`],
+    ["Pads and berms help a lot", p0 && p30 ? `In the model, a 30 m landing pad cuts the estimated distance for an Apollo-size lander from ${fr(p0.median)} to ${fr(p30.median)}. That's a best case: pad edges and berms also erode in reality.` : "A landing pad stops the blast from digging up dust right under the engine. Pad results are still being computed."],
+    ["Honest uncertainty", `Different model versions disagree: for an Apollo-size lander the estimated distance ranges from ${fr(a.lo)} to ${fr(a.hi)}. One measurement on Surveyor 3 can't pin everything down. Like several weather forecasts for the same day, we show the whole range instead of pretending to know the exact answer.`],
   ];
   document.getElementById("learned").innerHTML = cards.map(([h, p]) => `<div class="card"><h3>${h}</h3><p>${p}</p></div>`).join("");
+}
+
+/* =====================================================================
+   Start screen: the answer first (numbers from the model data)
+   ===================================================================== */
+function renderAnswer() {
+  const lm = D.landers.find((l) => l.thrust_N === 11600);
+  const ring = lm && ringsFor(lm, "1.5", 1).find((x) => x.f === 0.1);
+  const M = D.mitigation, pad = M && M.practical_distance["11.6 kN | pad, 30 m radius"];
+  const el = document.getElementById("heroAnswer");
+  if (!ring || !isFinite(ring.med)) { el.hidden = true; return; }
+  el.innerHTML = `<b>Our answer, in short:</b> an Apollo-size lander should touch down about <b>${fmtD(ring.med)}</b> from hardware on the Moon, so it gets less than a tenth of the sandblasting Surveyor 3 got.` +
+    (pad && pad.median != null ? ` On a 30 m landing pad, about <b>${fmtD(pad.median)}</b> is enough.` : "") +
+    `<small>A rule of thumb from our model, not a safety rule. The story shows how we got there.</small>`;
+}
+// "Chapter 2 of 4 · about 5 min · Badge: ..." under every chapter title
+function renderChapterMeta() {
+  const order = ["surveyor", "apollo", "simulation", "future"];
+  let total = 0;
+  order.forEach((ch, k) => {
+    const root = document.getElementById("ch-" + ch), el = root.querySelector(".chap-meta");
+    // reading time: visible story text only (no nerd boxes, menus or hidden panels) + 1 min per station
+    const c = root.cloneNode(true);
+    c.querySelectorAll("details.nerd, select, script, [hidden]:not(.station), #missionCtl").forEach((n) => n.remove());
+    const words = c.textContent.split(/\s+/).filter(Boolean).length;
+    const min = Math.max(2, Math.round(words / 220) + root.querySelectorAll(".station").length);
+    total += min;
+    const own = BADGES.filter((b) => b.ch === ch);
+    const badge = own.length === 1 ? `Badge: <b>${own[0].name}</b> (${own[0].desc.charAt(0).toLowerCase() + own[0].desc.slice(1)})`
+      : own.length > 1 ? `${own.length} badges to earn` : "";
+    el.innerHTML = `<span>Chapter ${k + 1} of 4</span><span>about ${min} min</span>${badge ? `<span>${badge}</span>` : ""}`;
+  });
+  document.getElementById("ctaMeta").textContent = `4 chapters · about ${total} min · or the short tour`;
 }
 
 /* =====================================================================
    Init
    ===================================================================== */
 renderParts(); showStep(0);
-renderMissions(); renderLearned(); updateProgress();
+renderMissions(); renderLearned(); updateProgress(); renderAnswer(); renderChapterMeta();
 showChapter(location.hash.slice(1) || "intro");
